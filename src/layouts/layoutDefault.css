@@ -1,0 +1,18 @@
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.layout-footer {
+  margin-top: auto;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+  padding-top: 16px;
+  text-align: center;
+}
