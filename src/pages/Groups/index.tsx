@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import type IGroup from "@/interfaces/group.interface";
 import { findBySlugGroupTopic } from "@/services/groupTopic";
 import type IGroupTopic from "@/interfaces/groupTopic.interface";
+import ButtonAddGroup from "./ButtonAddGroup";
 
 const { Search } = Input;
 
@@ -20,6 +21,7 @@ function GroupsPage() {
   const accessToken = getCookie("accessToken");
   const { groupTopicSlug } = useParams();
 
+  const [reload, setReload] = useState(false);
   const [searchGroupsByTitle, setSearchGroupsByTitle] = useState<string>("");
   const [groupTopic, setGroupTopic] = useState<IGroupTopic>();
   const [groups, setGroups] = useState<IGroup[]>([]);
@@ -64,7 +66,7 @@ function GroupsPage() {
     if (groupTopic) {
       fetchApi();
     }
-  }, [accessToken, groupTopic, groupsLimit, searchGroupsByTitle]);
+  }, [accessToken, groupTopic, groupsLimit, searchGroupsByTitle, reload]);
 
   const handleViewMore = () => {
     setGroupsLimit(groupsLimit + 20);
@@ -92,6 +94,12 @@ function GroupsPage() {
           />
         </div>
       </div>
+
+      {groupTopic && (
+        <div className="flex justify-end">
+          <ButtonAddGroup reload={reload} setReload={setReload} groupTopic={groupTopic} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {groups.map((group) => (

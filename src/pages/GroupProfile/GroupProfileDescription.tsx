@@ -91,7 +91,9 @@ function GroupProfileDescription({
           <CardAction>
             {group &&
               group.users.some(
-                (user) => user.role === "superAdmin" && user.userId === userId
+                (user) =>
+                  (user.role === "superAdmin" || user.role === "admin") &&
+                  user.userId === userId
               ) && (
                 <Button variant="outline" onClick={showDescriptionModal}>
                   Edit

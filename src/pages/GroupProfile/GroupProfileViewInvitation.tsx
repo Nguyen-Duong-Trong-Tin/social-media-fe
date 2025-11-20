@@ -107,7 +107,10 @@ function GroupProfileViewInvitation() {
               </Avatar>
 
               <h2 className="text-xl font-semibold mt-3">{group.title}</h2>
-              <p className="text-gray-600 text-sm">{group.description}</p>
+              <div
+                className="text-gray-600 text-sm"
+                dangerouslySetInnerHTML={{ __html: group.description }}
+              />
 
               <Separator className="my-4" />
 

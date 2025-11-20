@@ -22,7 +22,8 @@ function Header() {
   };
 
   const handleLogout = () => {
-    deleteCookie("slug");
+    deleteCookie("userId");
+    deleteCookie("userSlug");
     deleteCookie("accessToken");
     deleteCookie("refreshToken");
 

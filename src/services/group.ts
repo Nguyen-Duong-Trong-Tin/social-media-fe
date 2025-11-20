@@ -84,6 +84,29 @@ export const updateInvitationGroup = async ({
   return response;
 };
 
+export const changeUserRole = async ({
+  accessToken,
+  id,
+  userId,
+  role,
+}: {
+  accessToken: string;
+  id: string;
+  userId: string;
+  role: string;
+}) => {
+  const response = await axios.patch(
+    `${v1}/groups/change-user-role/${role}/${userId}/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response;
+};
+
 export const inviteMemberGroup = async ({
   accessToken,
   id,
@@ -144,5 +167,22 @@ export const inviteMemberGroupReject = async ({
       },
     }
   );
+  return response;
+};
+
+export const leaveGroup = async ({
+  accessToken,
+  id,
+  userId,
+}: {
+  accessToken: string;
+  id: string;
+  userId: string;
+}) => {
+  const response = await axios.delete(`${v1}/groups/leave/${userId}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
   return response;
 };

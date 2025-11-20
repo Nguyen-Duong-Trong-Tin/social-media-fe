@@ -75,7 +75,6 @@ function GroupProfileInvitation({
       </Modal>
 
       <div
-        key={"124321331311332333324213424234"}
         onClick={() => {
           showInvitationModal();
         }}

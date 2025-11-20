@@ -1,15 +1,13 @@
 enum EGroupStatus {
   active = "active",
-  inactive = "inactive"
-};
+  inactive = "inactive",
+}
 
 enum EGroupRole {
   superAdmin = "superAdmin",
   admin = "admin",
-  user = "user"
-};
+  user = "user",
+  teacher = "teacher",
+}
 
-export {
-  EGroupStatus,
-  EGroupRole
-};
+export { EGroupStatus, EGroupRole };

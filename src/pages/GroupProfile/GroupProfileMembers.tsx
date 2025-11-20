@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Card, Image, Input, Modal, Table, Tag } from "antd";
+import { Avatar, Card, Image, Input, Modal, Select, Table, Tag } from "antd";
 
 import { Button } from "@/components/ui/button";
 import type IUser from "@/interfaces/user.interface";
 import { findUsers, userFindUserByIds } from "@/services/user";
-import { inviteMemberGroup } from "@/services/group";
+import { changeUserRole, inviteMemberGroup } from "@/services/group";
 import { toast } from "react-toastify";
 import type IGroup from "@/interfaces/group.interface";
+import { getCookie } from "@/helpers/cookies";
+import { EGroupRole } from "@/enums/group.enum";
 
 const { Search } = Input;
 
@@ -19,6 +21,7 @@ function GroupProfileMembers({
   group: IGroup;
 }) {
   const navigate = useNavigate();
+  const userId = getCookie("userId");
 
   const columns = [
     {
@@ -60,19 +63,72 @@ function GroupProfileMembers({
       title: "Role",
       dataIndex: "groupRole",
       key: "groupRole",
-      render: (_: unknown, { groupRole }: { groupRole: string }) => {
+      render: (
+        _: unknown,
+        { groupRole, groupUserId }: { groupRole: string; groupUserId: string }
+      ) => {
+        if (
+          groupUserId !== userId &&
+          groupRole !== "superAdmin" &&
+          group.users.some(
+            (user) =>
+              user.userId === userId &&
+              (user.role === "superAdmin" || user.role === "admin")
+          )
+        ) {
+          const onChange = async (value: string) => {
+            try {
+              await changeUserRole({
+                accessToken,
+                id: group._id,
+                userId: groupUserId,
+                role: value,
+              });
+
+              toast.success("Update successfully.");
+            } catch {
+              toast.error("Something went wrong.");
+            }
+          };
+
+          return (
+            <Select
+              onChange={onChange}
+              defaultValue={groupRole}
+              options={Object.values(EGroupRole).map((role) => {
+                const content =
+                  role === "superAdmin"
+                    ? "Owner"
+                    : role === "teacher"
+                    ? "Teacher"
+                    : role === "admin"
+                    ? "Admin"
+                    : "Member";
+
+                return {
+                  value: role,
+                  label: <span>{content}</span>,
+                };
+              })}
+            />
+          );
+        }
+
+        const content =
+          groupRole === "superAdmin"
+            ? "Owner"
+            : groupRole === "teacher"
+            ? "Teacher"
+            : groupRole === "admin"
+            ? "Admin"
+            : "Member";
+
         const color =
           groupRole === "superAdmin"
             ? "red"
             : groupRole === "teacher"
             ? "green"
             : "blue";
-        const content =
-          groupRole === "superAdmin"
-            ? "Owner"
-            : groupRole === "teacher"
-            ? "Teacher"
-            : "Member";
 
         return <Tag color={color}>{content}</Tag>;
       },
@@ -86,6 +142,7 @@ function GroupProfileMembers({
   const [usersCanInviteTotal, setUsersCanInviteTotal] = useState(0);
   const [usersCanInviteLimit, setUsersCanInviteLimit] = useState(20);
   const [usersCanInvite, setUsersCanInvite] = useState<IUser[]>([]);
+  const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -100,6 +157,7 @@ function GroupProfileMembers({
         data.map((item: IUser, index: number) => ({
           ...item,
           groupRole: group.users[index].role,
+          groupUserId: group.users[index].userId,
         }))
       );
     };
@@ -116,7 +174,10 @@ function GroupProfileMembers({
         limit: usersCanInviteLimit,
         filter: {
           fullName: searchUsersCanInvite,
-          notInIds: JSON.stringify(users.map((user) => user._id)),
+          notInIds: JSON.stringify([
+            ...users.map((user) => user._id),
+            group.usersInvited.map((userInvited) => userInvited),
+          ]),
         },
       });
 
@@ -124,7 +185,13 @@ function GroupProfileMembers({
       setUsersCanInviteTotal(data.users.total);
     };
     fetchApi();
-  }, [accessToken, users, usersCanInviteLimit, searchUsersCanInvite]);
+  }, [
+    accessToken,
+    users,
+    usersCanInviteLimit,
+    searchUsersCanInvite,
+    group.usersInvited,
+  ]);
 
   const handleInviteMember = async ({
     userId,
@@ -134,10 +201,10 @@ function GroupProfileMembers({
     groupId: string;
   }) => {
     try {
-      const {
-        data: { data },
-      } = await inviteMemberGroup({ accessToken, id: groupId, userId });
-      console.log(data);
+      await inviteMemberGroup({ accessToken, id: groupId, userId });
+
+      setInvitedUsers((prev) => [...prev, userId]);
+      toast.success("Invite successfully.");
     } catch {
       toast.error("Something went wrong.");
     }
@@ -161,6 +228,14 @@ function GroupProfileMembers({
 
   const groupUsersFiltered = users.filter((user) =>
     user.fullName.toLowerCase().includes(searchGroupUsersByName.toLowerCase())
+  );
+
+  const canInviteMember = group.users.some(
+    (user) =>
+      user.userId === userId &&
+      (user.role === "superAdmin" ||
+        user.role === "admin" ||
+        user.role === "teacher")
   );
 
   return (
@@ -211,18 +286,28 @@ function GroupProfileMembers({
               </div>
 
               <div className="mt-4 flex justify-end">
-                <Button
-                  className="cursor-pointer"
-                  variant="default"
-                  onClick={() => {
-                    handleInviteMember({
-                      userId: user._id,
-                      groupId: group._id,
-                    });
-                  }}
-                >
-                  Invite
-                </Button>
+                {invitedUsers.includes(user._id) ? (
+                  <Button
+                    className="cursor-not-allowed"
+                    variant="default"
+                    onClick={() => {}}
+                  >
+                    Invited
+                  </Button>
+                ) : (
+                  <Button
+                    className="cursor-pointer"
+                    variant="default"
+                    onClick={() => {
+                      handleInviteMember({
+                        userId: user._id,
+                        groupId: group._id,
+                      });
+                    }}
+                  >
+                    Invite
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
@@ -257,17 +342,20 @@ function GroupProfileMembers({
             />
           </div>
         </div>
-        <div className="mb-6 flex justify-end">
-          <Button
-            className="cursor-pointer"
-            variant="default"
-            onClick={() => {
-              showModalInviteMember();
-            }}
-          >
-            Invite members
-          </Button>
-        </div>
+
+        {canInviteMember && (
+          <div className="mb-6 flex justify-end">
+            <Button
+              className="cursor-pointer"
+              variant="default"
+              onClick={() => {
+                showModalInviteMember();
+              }}
+            >
+              Invite members
+            </Button>
+          </div>
+        )}
 
         <Table dataSource={groupUsersFiltered} columns={columns} />
       </Card>
