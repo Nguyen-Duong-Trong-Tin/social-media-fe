@@ -1,5 +1,6 @@
 import {
   Button,
+  DatePicker,
   Form,
   Input,
   Modal,
@@ -9,34 +10,31 @@ import {
   type UploadFile,
   type UploadProps,
 } from "antd";
+import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
 import type ITaskGroup from "@/interfaces/taskGroup.interface";
-import { UploadOutlined, EditOutlined } from "@ant-design/icons";
-import type ITaskGroupSubmission from "@/interfaces/taskGroupSubmission.interface";
+import { IMAGE_NOT_FOUND_SRC } from "@/constants";
 
 type FieldType = {
   title: string;
   images: UploadFile[];
   videos: UploadFile[];
-  materials: UploadFile[];
+  deadline: Date;
 };
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 const v1 = import.meta.env.VITE_BACKEND_V1;
 
-function GroupProfileTasksButtonSubmit({
+function GroupProfileTasksButtonEdit({
   setReload,
   taskGroup,
-  taskGroupSubmission,
 }: {
   setReload: Dispatch<SetStateAction<boolean>>;
   taskGroup: ITaskGroup;
-  taskGroupSubmission: ITaskGroupSubmission | null;
 }) {
-  const userId = getCookie("userId");
   const accessToken = getCookie("accessToken");
 
   const [form] = Form.useForm<FieldType>();
@@ -51,18 +49,14 @@ function GroupProfileTasksButtonSubmit({
   const [videoFileListRemoved, setVideoFileListRemoved] = useState<string[]>(
     []
   );
-  const [materialFileList, setMaterialFileList] = useState<UploadFile[]>([]);
-  const [materialFIleListRemoved, setMaterialFileListRemoved] = useState<
-    string[]
-  >([]);
 
   useEffect(() => {
     const initValue = () => {
-      if (!taskGroupSubmission) {
+      if (!taskGroup) {
         return;
       }
 
-      setDescription(taskGroupSubmission.description as string);
+      setDescription(taskGroup.description as string);
 
       const mapUrlToUploadFile = (url: string, idx: number) => ({
         uid: `remote-${idx}-${url}`,
@@ -71,30 +65,33 @@ function GroupProfileTasksButtonSubmit({
         url,
       });
 
-      if (taskGroupSubmission.images.length) {
-        const files = taskGroupSubmission.images.map(mapUrlToUploadFile);
+      taskGroup.images = taskGroup.images.filter(
+        (taskGroup) => taskGroup !== IMAGE_NOT_FOUND_SRC
+      );
+
+      if (taskGroup.images.length) {
+        const files = taskGroup.images.map(mapUrlToUploadFile);
         setImageFileList(files);
         form.setFieldsValue({ images: files });
       }
 
-      if (taskGroupSubmission.videos.length) {
-        const files = taskGroupSubmission.videos.map(mapUrlToUploadFile);
+      taskGroup.videos = taskGroup.videos.filter(
+        (taskGroup) => taskGroup !== ""
+      );
+
+      if (taskGroup.videos.length) {
+        const files = taskGroup.videos.map(mapUrlToUploadFile);
         setVideoFileList(files);
         form.setFieldsValue({ videos: files });
       }
 
-      if (taskGroupSubmission.materials.length) {
-        const files = taskGroupSubmission.materials.map(mapUrlToUploadFile);
-        setMaterialFileList(files);
-        form.setFieldsValue({ materials: files });
-      }
-
       form.setFieldsValue({
-        title: taskGroupSubmission.title ?? "",
+        title: taskGroup.title ?? "",
+        deadline: dayjs(taskGroup.deadline),
       });
     };
     initValue();
-  }, [taskGroupSubmission, form]);
+  }, [form, taskGroup]);
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -136,20 +133,6 @@ function GroupProfileTasksButtonSubmit({
     form.setFieldsValue({ videos: newFileList });
   };
 
-  const onChangeMaterial: UploadProps["onChange"] = ({
-    file,
-    fileList: newFileList,
-  }) => {
-    if (file.status === "removed" && file.url) {
-      const url = file.url;
-      setMaterialFileListRemoved((prev) => [...prev, url]);
-      return;
-    }
-
-    setMaterialFileList(newFileList);
-    form.setFieldsValue({ materials: newFileList });
-  };
-
   const onPreviewImage = async (file: UploadFile) => {
     let src = file.url as string;
     if (!src) {
@@ -187,40 +170,6 @@ function GroupProfileTasksButtonSubmit({
     }
   };
 
-  const onPreviewMaterial = async (file: UploadFile) => {
-    let src = file.url as string;
-
-    if (!src) {
-      src = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file.originFileObj as FileType);
-        reader.onload = () => resolve(reader.result as string);
-      });
-    }
-
-    const ext = file.name?.split(".").pop()?.toLowerCase();
-
-    if (ext === "pdf") {
-      const win = window.open("", "_blank");
-      if (win) {
-        win.document.write(`
-        <iframe src="${src}" style="width:100%; height:100%; border:none;"></iframe>
-      `);
-      }
-      return;
-    }
-
-    if (ext === "doc" || ext === "docx") {
-      const link = document.createElement("a");
-      link.href = src;
-      link.download = file.name;
-      link.click();
-      return;
-    }
-
-    window.open(src);
-  };
-
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setIsButtonLoading(true);
 
@@ -229,9 +178,7 @@ function GroupProfileTasksButtonSubmit({
 
       fd.append("title", values.title ?? "");
       fd.append("description", description);
-      fd.append("status", "active");
-      fd.append("userId", userId);
-      fd.append("taskGroupId", taskGroup._id);
+      fd.append("deadline", values.deadline.format("YYYY-MM-DD HH:mm:ss"));
 
       const processFiles = (
         files: (UploadFile | undefined)[] | undefined
@@ -282,24 +229,12 @@ function GroupProfileTasksButtonSubmit({
         fd.append("existingVideos", JSON.stringify(existingVideos));
       }
 
-      const materialList =
-        (values.materials as UploadFile[] | undefined) ?? materialFileList;
-      const { newFiles: newMaterials, existingUrls: existingMaterials } =
-        processFiles(materialList);
-      for (const file of newMaterials) {
-        fd.append("materials", file);
-      }
-      if (existingMaterials.length > 0) {
-        fd.append("existingMaterials", JSON.stringify(existingMaterials));
-      }
-
       fd.append("imagesRemoved", JSON.stringify(imageFileListRemoved));
       fd.append("videosRemoved", JSON.stringify(videoFileListRemoved));
-      fd.append("materialsRemoved", JSON.stringify(materialFIleListRemoved));
 
-      const url = `${v1}/taskGroupSubmissions/submit`;
+      const url = `${v1}/taskGroups/${taskGroup._id}`;
       const res = await fetch(url, {
-        method: "POST",
+        method: "PATCH",
         body: fd,
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -323,13 +258,12 @@ function GroupProfileTasksButtonSubmit({
       await res.json().catch(() => ({}));
       toast.success("Submit successfully.");
       setIsModalOpen(false);
-
       setImageFileList([]);
       setVideoFileList([]);
-      setMaterialFileList([]);
       setReload((prev) => !prev);
       form.resetFields();
-    } catch {
+    } catch (err) {
+      console.error("onFinish error:", err);
       toast.error("Something went wrong.");
     }
 
@@ -345,7 +279,7 @@ function GroupProfileTasksButtonSubmit({
   return (
     <>
       <Modal
-        title="Submit my answer"
+        title="Task group"
         closable={{ "aria-label": "Custom Close Button" }}
         open={isModalOpen}
         onOk={handleOk}
@@ -354,7 +288,7 @@ function GroupProfileTasksButtonSubmit({
       >
         <Form
           form={form}
-          method="POST"
+          method="PATCH"
           encType="multipart/form-data"
           layout="vertical"
           onFinish={onFinish}
@@ -418,22 +352,13 @@ function GroupProfileTasksButtonSubmit({
           </Form.Item>
 
           <Form.Item
-            name="materials"
-            label="Materials"
-            valuePropName="fileList"
-            getValueFromEvent={normFile}
+            name="deadline"
+            label="Deadline"
+            rules={[
+              { required: true, message: "Please choose your deadline!" },
+            ]}
           >
-            <Upload
-              listType="picture-card"
-              fileList={materialFileList}
-              onChange={onChangeMaterial}
-              onPreview={onPreviewMaterial}
-              beforeUpload={() => false}
-              maxCount={6}
-              accept=".pdf,.doc,.docx"
-            >
-              {materialFileList.length < 6 && "+ Upload"}
-            </Upload>
+            <DatePicker showTime />
           </Form.Item>
 
           <Form.Item className="flex justify-end" label={null}>
@@ -444,22 +369,9 @@ function GroupProfileTasksButtonSubmit({
         </Form>
       </Modal>
 
-      {taskGroupSubmission ? (
-        <Button
-          icon={<EditOutlined />}
-          color="cyan"
-          variant="outlined"
-          onClick={showModal}
-        >
-          Edit
-        </Button>
-      ) : (
-        <Button icon={<UploadOutlined />} onClick={showModal}>
-          Submit
-        </Button>
-      )}
+      <Button onClick={showModal}>Edit</Button>
     </>
   );
 }
 
-export default GroupProfileTasksButtonSubmit;
+export default GroupProfileTasksButtonEdit;

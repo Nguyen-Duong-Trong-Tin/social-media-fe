@@ -28,3 +28,29 @@ export const findTaskGroups = async ({
   });
   return response;
 };
+
+export const findTaskGroupById = async ({
+  accessToken,
+  id,
+}: {
+  accessToken: string;
+  id: string;
+}) => {
+  const response = await axios.get(`${v1}/taskGroups/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response;
+};
+
+export const deleteTaskGroup = async ({
+  accessToken,
+  id,
+}: {
+  accessToken: string;
+  id: string;
+}) => {
+  const response = await axios.delete(`${v1}/taskGroups/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response;
+};

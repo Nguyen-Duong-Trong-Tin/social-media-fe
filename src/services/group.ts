@@ -29,6 +29,32 @@ export const findGroups = async ({
   return response;
 };
 
+export const findByIdGroup = async ({
+  accessToken,
+  id,
+}: {
+  accessToken: string;
+  id: string;
+}) => {
+  const response = await axios.get(`${v1}/groups/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response;
+}
+
+export const findSuggestGroup = async ({
+  accessToken,
+  userId,
+}: {
+  accessToken: string;
+  userId: string;
+}) => {
+  const response = await axios.get(`${v1}/groups/suggest/${userId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response;
+}
+
 export const findBySlugGroup = async ({
   accessToken,
   slug,

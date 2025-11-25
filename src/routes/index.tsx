@@ -11,6 +11,7 @@ import GroupsPage from "@/pages/Groups";
 import MyGroupsPage from "@/pages/MyGroups";
 import GroupProfilePage from "@/pages/GroupProfile";
 import GroupProfileViewInvitation from "@/pages/GroupProfile/GroupProfileViewInvitation";
+import GroupProfileTasksScoringDetail from "@/pages/GroupProfile/GroupProfileTasksScoringDetail";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
             path: "group-profile/view-invitation/:slug",
             element: <GroupProfileViewInvitation />,
           },
+          {
+            path: "group-profile/scoring/:taskGroupSubmissionSlug",
+            element: <GroupProfileTasksScoringDetail />,
+          }
         ],
       },
       {

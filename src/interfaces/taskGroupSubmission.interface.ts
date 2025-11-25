@@ -11,6 +11,10 @@ interface ITaskGroupSubmission extends IBase {
   materials: string[];
   status: ETaskGroupSubmissionStatus;
   taskGroupId: string;
+  score: number;
+  comment: string;
+  scoredBy: string;
+  scoredAt: Date;
   createdBy: {
     userId: string;
     createdAt: Date;

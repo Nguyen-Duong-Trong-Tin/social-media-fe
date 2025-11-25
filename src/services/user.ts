@@ -68,6 +68,18 @@ export const findUsers = async ({
   return response;
 };
 
+export const findUserById = async ({
+  accessToken,
+  id,
+}: {
+  accessToken: string;
+  id: string;
+}) => {
+  const response = await axios.get(`${v1}/users/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response;
+};
 
 export const userFindUserBySlug = async ({
   accessToken,

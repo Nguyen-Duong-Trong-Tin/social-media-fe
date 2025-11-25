@@ -5,7 +5,6 @@ import {
   Input,
   Modal,
   Upload,
-  type DatePickerProps,
   type FormProps,
   type GetProp,
   type UploadFile,
@@ -111,10 +110,6 @@ function GroupProfileTasksButtonCreate({
     `);
     }
   };
-
-  // const onChange: DatePickerProps["onChange"] = (_, dateString) => {
-  //   console.log(dateString);
-  // };
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     setIsButtonLoading(true);
