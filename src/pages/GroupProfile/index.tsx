@@ -14,6 +14,7 @@ import GroupProfileDescription from "./GroupProfileDescription";
 
 import "./GroupProfile.css";
 import GroupProfileTasks from "./GroupProfileTasks";
+import GroupProfileAIAssistant from "./GroupProfileAIAssistant";
 
 function GroupProfilePage() {
   const { slug } = useParams() as { slug: string };
@@ -62,6 +63,15 @@ function GroupProfilePage() {
     },
     {
       key: "3",
+      label: "AI Assistant",
+      children: (
+        <>
+          <GroupProfileAIAssistant />
+        </>
+      ),
+    },
+    {
+      key: "4",
       label: "Settings",
       children: (
         <>
