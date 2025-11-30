@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+import { useParams } from "react-router-dom";
 import { Avatar, Button, Flex, Input } from "antd";
 import { useEffect, useState, useRef } from "react";
 
@@ -6,16 +8,14 @@ import { socket } from "@/services/socket";
 import { Card } from "@/components/ui/card";
 import { getCookie } from "@/helpers/cookies";
 import { UserOutlined } from "@ant-design/icons";
-import { useParams } from "react-router-dom";
+import { findMessages } from "@/services/message";
 import SocketEvent from "@/enums/socketEvent.enum";
-import type { ServerResponseMessageToAIAssistantDto } from "@/dtos/dtos/message.dto";
-import type IGroup from "@/interfaces/group.interface";
 import { findBySlugGroup } from "@/services/group";
 import TypingBubble from "@/components/TypingBubble";
-import { toast } from "react-toastify";
-import { findRoomChatByAiAssistantAndUserId } from "@/services/roomChat";
-import { findMessages } from "@/services/message";
+import type IGroup from "@/interfaces/group.interface";
 import type IMessage from "@/interfaces/message.interface";
+import { findRoomChatByAiAssistantAndUserId } from "@/services/roomChat";
+import type { ServerResponseMessageToAIAssistantDto } from "@/dtos/dtos/message.dto";
 
 const { TextArea } = Input;
 
@@ -55,6 +55,7 @@ function GroupProfileAIAssistant() {
         const responseRoomChat = await findRoomChatByAiAssistantAndUserId({
           accessToken,
           userId,
+          groupId: responseGroup.data.data._id,
         });
         if (!responseRoomChat.data.data) {
           return;
@@ -92,7 +93,7 @@ function GroupProfileAIAssistant() {
       setMessages((prev) => {
         prev.pop();
 
-        return [...prev, { content: data.message, userId: "" }];
+        return [...prev, { content: data.message, userId: data.groupId }];
       });
     };
 
@@ -113,7 +114,7 @@ function GroupProfileAIAssistant() {
     setMessages((prev) => [
       ...prev,
       { content: message, userId },
-      { content: "...", userId: "", status: "typing" },
+      { content: "...", userId: group._id, status: "typing" },
     ]);
 
     socket.emit(SocketEvent.CLIENT_SEND_MESSAGE_TO_AI_ASSISTANT, {
@@ -128,68 +129,74 @@ function GroupProfileAIAssistant() {
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-3">AI Assistant</h2>
 
-        <Flex
-          vertical
-          gap="small"
-          className="overflow-y-auto pr-2"
-          style={{ height: 400 }}
-        >
-          {messages.map((message, index) => (
-            <Flex key={index} gap="small" wrap>
-              <div style={{ width: "100%" }}>
-                {message.status === "typing" ? (
-                  <TypingBubble />
-                ) : (
-                  <Bubble
-                    content={message.content}
-                    placement={message.userId ? "end" : "start"}
-                    avatar={<Avatar icon={<UserOutlined />} />}
-                  />
-                )}
-              </div>
+        {group && (
+          <>
+            <Flex
+              vertical
+              gap="small"
+              className="overflow-y-auto pr-2"
+              style={{ height: 400 }}
+            >
+              {messages.map((message, index) => (
+                <Flex key={index} gap="small" wrap>
+                  <div style={{ width: "100%" }}>
+                    {message.status === "typing" ? (
+                      <TypingBubble />
+                    ) : (
+                      <Bubble
+                        content={message.content}
+                        placement={
+                          message.userId === group._id ? "start" : "end"
+                        }
+                        avatar={<Avatar icon={<UserOutlined />} />}
+                      />
+                    )}
+                  </div>
+                </Flex>
+              ))}
+
+              <div ref={messagesEndRef} />
             </Flex>
-          ))}
 
-          <div ref={messagesEndRef} />
-        </Flex>
+            {!messages.length && (
+              <Flex
+                vertical
+                align="center"
+                justify="center"
+                style={{ height: "100%", opacity: 0.7 }}
+              >
+                <Avatar
+                  size={64}
+                  icon={<UserOutlined />}
+                  className="mb-4 bg-blue-500"
+                />
+                <h3 className="text-xl font-semibold text-gray-700">
+                  Hi! How can I help you?
+                </h3>
+                <p className="text-gray-500 mb-6 text-center max-w-md">
+                  I am the AI assistant of the {group.title} team. Ask me
+                  anything related to the team.
+                </p>
+              </Flex>
+            )}
 
-        {!messages.length && (
-          <Flex
-            vertical
-            align="center"
-            justify="center"
-            style={{ height: "100%", opacity: 0.7 }}
-          >
-            <Avatar
-              size={64}
-              icon={<UserOutlined />}
-              className="mb-4 bg-blue-500"
-            />
-            <h3 className="text-xl font-semibold text-gray-700">
-              Hi! How can I help you?
-            </h3>
-            <p className="text-gray-500 mb-6 text-center max-w-md">
-              I am the AI ​​assistant of the {group?.title} team. Ask me
-              anything related to the team.
-            </p>
-          </Flex>
+            <div style={{ gap: "8px" }} className="flex items-center">
+              <TextArea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                autoSize={{ minRows: 2, maxRows: 6 }}
+                placeholder="Type your message..."
+              />
+              <Button
+                type="primary"
+                loading={isButtonLoading}
+                onClick={handleSendMessage}
+              >
+                Submit
+              </Button>
+            </div>
+          </>
         )}
-
-        <div style={{ gap: "8px" }} className="flex items-center">
-          <TextArea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            autoSize={{ minRows: 2, maxRows: 6 }}
-            placeholder="Type your message..."
-          />
-          <Button
-            type="primary"
-            loading={isButtonLoading}
-            onClick={handleSendMessage}
-          >
-            Submit
-          </Button>
-        </div>
       </Card>
     </>
   );

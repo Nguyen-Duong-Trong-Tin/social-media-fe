@@ -28,19 +28,26 @@ function ButtonAddGroup({
   setReload,
   groupTopic,
 }: {
-  reload: boolean,
+  reload: boolean;
   setReload: Dispatch<SetStateAction<boolean>>;
   groupTopic: IGroupTopic;
 }) {
   const userId = getCookie("userId");
   const accessToken = getCookie("accessToken");
 
+  const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [avatarFileList, setAvatarFileList] = useState<UploadFile[]>([]);
   const [coverPhotoFileList, setCoverPhotoFileList] = useState<UploadFile[]>(
     []
   );
   const [isButtonLoading, setiSButtonLoading] = useState(false);
+
+  const resetForm = () => {
+    form.resetFields();
+    setAvatarFileList([]);
+    setCoverPhotoFileList([]);
+  };
 
   const onChangeAvatar: UploadProps["onChange"] = ({
     fileList: newFileList,
@@ -145,10 +152,9 @@ function ButtonAddGroup({
 
       await res.json().catch(() => ({}));
       toast.success("Create group successfully.");
+      resetForm();
+      handleCancel();
       setReload(!reload);
-      setIsModalOpen(false);
-      setAvatarFileList([]);
-      setCoverPhotoFileList([]);
     } catch {
       toast.error("Something went wrong.");
     }
@@ -175,6 +181,7 @@ function ButtonAddGroup({
         footer={null}
       >
         <Form
+          form={form}
           method="POST"
           encType="multipart/form-data"
           layout="vertical"
