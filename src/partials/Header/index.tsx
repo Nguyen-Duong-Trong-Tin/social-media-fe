@@ -21,6 +21,10 @@ function Header() {
     navigate(`/my-groups`);
   };
 
+  const navigateToFriends = async () => {
+    navigate(`/friends`);
+  };
+
   const handleLogout = () => {
     deleteCookie("userId");
     deleteCookie("userSlug");
@@ -69,10 +73,10 @@ function Header() {
         >
           Me
         </a>
-        <a href="#" className="hover:underline" onClick={navigateToMyGroups}>
+        <a className="hover:underline" onClick={navigateToMyGroups}>
           Groups
         </a>
-        <a href="#" className="hover:underline">
+        <a className="hover:underline" onClick={navigateToFriends}>
           Friends
         </a>
       </nav>
