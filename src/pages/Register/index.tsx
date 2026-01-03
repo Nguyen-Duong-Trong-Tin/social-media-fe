@@ -5,7 +5,7 @@ import {
   PhoneOutlined,
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Form, Input, Button, Typography, Card } from "antd";
 
 import {
@@ -168,9 +168,9 @@ function Register() {
           <div className="register-footer">
             <Text>
               Already have an account?{" "}
-              <a href="/login" className="register-login-link">
+              <Link to="/login" className="register-login-link">
                 Log In
-              </a>
+              </Link>
             </Text>
           </div>
         </Card>

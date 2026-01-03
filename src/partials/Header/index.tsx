@@ -1,27 +1,27 @@
 import { Input, Button } from "antd";
 import { useNavigate } from "react-router-dom";
-
-import { cn } from "@/lib/utils";
 import { SearchOutlined } from "@ant-design/icons";
 import { deleteCookie, getCookie } from "@/helpers/cookies";
+
+import "./Header.css";
 
 function Header() {
   const navigate = useNavigate();
   const userSlug = getCookie("userSlug");
 
-  const navigateToHome = async () => {
+  const navigateToHome = () => {
     navigate("/");
   };
 
-  const navigateToMyProfile = async () => {
+  const navigateToMyProfile = () => {
     navigate(`/profile/${userSlug}`);
   };
 
-  const navigateToMyGroups = async () => {
+  const navigateToMyGroups = () => {
     navigate(`/my-groups`);
   };
 
-  const navigateToFriends = async () => {
+  const navigateToFriends = () => {
     navigate(`/friends`);
   };
 
@@ -35,59 +35,40 @@ function Header() {
   };
 
   return (
-    <header
-      className={cn(
-        "flex items-center justify-between px-4 py-2 bg-[#1877f2] text-white shadow-md"
-      )}
-    >
+    <header className="header-container">
       {/* Logo */}
-      <div
-        className="flex items-center space-x-2 cursor-pointer"
-        onClick={navigateToHome}
-      >
-        <div className="w-6 h-6 rounded-full bg-white" />
-        <span className="text-lg font-semibold">EduS</span>
+      <div className="header-logo" onClick={navigateToHome}>
+        <div className="header-logo-icon" />
+        <span className="header-logo-text">EduS</span>
       </div>
 
       {/* Search */}
-      <div className="flex-1 mx-4 max-w-xl">
+      <div className="header-search">
         <Input
-          size="large"
-          placeholder="Search"
+          placeholder="Search people, groups..."
           prefix={<SearchOutlined />}
-          className="rounded-full"
-          style={{
-            borderRadius: "9999px",
-          }}
+          allowClear
         />
       </div>
 
       {/* Menu */}
-      <nav className="flex items-center space-x-4 text-sm font-medium">
-        <a className="hover:underline cursor-pointer" onClick={navigateToHome}>
+      <nav className="header-nav">
+        <a className="header-nav-link" onClick={navigateToHome}>
           Home
         </a>
-        <a
-          className="hover:underline cursor-pointer"
-          onClick={navigateToMyProfile}
-        >
+        <a className="header-nav-link" onClick={navigateToMyProfile}>
           Me
         </a>
-        <a className="hover:underline" onClick={navigateToMyGroups}>
+        <a className="header-nav-link" onClick={navigateToMyGroups}>
           Groups
         </a>
-        <a className="hover:underline" onClick={navigateToFriends}>
+        <a className="header-nav-link" onClick={navigateToFriends}>
           Friends
         </a>
       </nav>
 
       {/* Logout */}
-      <Button
-        type="primary"
-        danger
-        className="ml-4 rounded-full font-semibold"
-        onClick={handleLogout}
-      >
+      <Button className="header-logout-btn" onClick={handleLogout}>
         Logout
       </Button>
     </header>

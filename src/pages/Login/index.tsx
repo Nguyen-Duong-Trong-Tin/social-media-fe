@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Form, Input, Button, Typography, Card } from "antd";
 
 import { MailOutlined, LockOutlined } from "@ant-design/icons";
@@ -104,9 +104,9 @@ const Login = () => {
           <div className="login-footer">
             <Text>
               Don't have an account?{" "}
-              <a href="/register" className="login-register-link">
+              <Link to="/register" className="login-register-link">
                 Create account
-              </a>
+              </Link>
             </Text>
           </div>
         </Card>
