@@ -1,15 +1,19 @@
 import { toast } from "react-toastify";
-import { Col, Divider, Row } from "antd";
 import { useEffect, useState } from "react";
 
 import { socket } from "@/services/socket";
 import { getCookie } from "@/helpers/cookies";
 import { findUserById } from "@/services/user";
-import { Button } from "@/components/ui/button";
 import SocketEvent from "@/enums/socketEvent.enum";
 import type IUser from "@/interfaces/user.interface";
-import { Card, CardContent } from "@/components/ui/card";
-import type { ServerResponseRejectFriendRequest } from "@/dtos/dtos/user.dto";
+import type {
+  ServerResponseRejectFriendRequest,
+  ServerResponseAcceptFriendRequest,
+  ServerResponseDeleteFriendAccept,
+} from "@/dtos/dtos/user.dto";
+import FriendRequestsList from "@/pages/Friends/FriendRequestsList";
+import FriendAcceptsList from "@/pages/Friends/FriendAcceptsList";
+import FriendsList from "@/pages/Friends/FriendsList";
 
 function FriendsPage() {
   const userId = getCookie("userId");
@@ -18,6 +22,9 @@ function FriendsPage() {
   const [reload, setReload] = useState(false);
   const [friendRequests, setFriendRequests] = useState<IUser[]>([]);
   const [friendAccepts, setFriendAccepts] = useState<IUser[]>([]);
+  const [friends, setFriends] = useState<
+    { user: IUser; roomChatId: string }[]
+  >([]);
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -40,8 +47,17 @@ function FriendsPage() {
           friendAccepts.push(data);
         }
 
+        const friends: { user: IUser; roomChatId: string }[] = [];
+        for (const friend of responseUser.data.data.friends) {
+          const {
+            data: { data },
+          } = await findUserById({ accessToken, id: friend.userId });
+          friends.push({ user: data, roomChatId: friend.roomChatId });
+        }
+
         setFriendRequests(friendRequests);
         setFriendAccepts(friendAccepts);
+        setFriends(friends);
       } catch {
         toast.error("Something went wrong");
       }
@@ -51,7 +67,10 @@ function FriendsPage() {
 
   useEffect(() => {
     const handler = (data: ServerResponseRejectFriendRequest) => {
-      if (userId !== data.userRequestId) {
+      console.log("reject");
+      console.log(userId);
+      console.log(data);
+      if (!(userId === data.userId || userId === data.userRequestId)) {
         return;
       }
 
@@ -65,98 +84,79 @@ function FriendsPage() {
     };
   }, [userId]);
 
+  useEffect(() => {
+    const handler = (data: ServerResponseAcceptFriendRequest) => {
+      if (!(userId === data.userId || userId === data.userRequestId)) {
+        return;
+      }
+
+      setReload((prev) => !prev);
+    };
+
+    socket.on(SocketEvent.SERVER_RESPONSE_ACCEPT_FRIEND_REQUEST, handler);
+
+    return () => {
+      socket.off(SocketEvent.SERVER_RESPONSE_ACCEPT_FRIEND_REQUEST, handler);
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    const handler = (data: ServerResponseDeleteFriendAccept) => {
+      if (!(userId === data.userId || userId === data.userRequestId)) {
+        return;
+      }
+
+      setReload((prev) => !prev);
+    };
+
+    socket.on(SocketEvent.SERVER_RESPONSE_DELETE_FRIEND_ACCEPT, handler);
+
+    return () => {
+      socket.off(SocketEvent.SERVER_RESPONSE_DELETE_FRIEND_ACCEPT, handler);
+    };
+  }, [userId]);
+
   const handleRejectFriendRequest = (userRequestId: string) => {
     socket.emit(SocketEvent.CLIENT_REJECT_FRIEND_REQUEST, {
       userId,
       userRequestId: userRequestId,
     });
 
-    setReload((prev) => !prev);
     toast.success("Rejected friend request successfully");
+  };
+
+  const handleAcceptFriendRequest = (userRequestId: string) => {
+    socket.emit(SocketEvent.CLIENT_ACCEPT_FRIEND_REQUEST, {
+      userId,
+      userRequestId: userRequestId,
+    });
+
+    toast.success("Accepted friend request successfully");
+  };
+
+  const handleDeleteFriendAccept = (userRequestId: string) => {
+    socket.emit(SocketEvent.CLIENT_DELETE_FRIEND_ACCEPT, {
+      userId,
+      userRequestId: userRequestId,
+    });
+
+    toast.success("Deleted friend accept successfully");
   };
 
   return (
     <>
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold">List Of Friend Requests</h2>
+      <FriendRequestsList
+        friendRequests={friendRequests}
+        onAccept={handleAcceptFriendRequest}
+        onReject={handleRejectFriendRequest}
+      />
 
-        <Row gutter={[16, 16]}>
-          {friendRequests.map((friendRequest) => (
-            <Col key={friendRequest._id} span={6}>
-              <Card className="w-full overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white hover:shadow-md transition-shadow duration-300 pt-0">
-                <div className="h-50 w-full overflow-hidden relative group">
-                  <img
-                    src={friendRequest.avatar}
-                    alt={friendRequest.fullName}
-                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <Divider />
+      <FriendAcceptsList
+        friendAccepts={friendAccepts}
+        onDelete={handleDeleteFriendAccept}
+      />
 
-                <CardContent className="p-4 flex flex-col gap-3">
-                  <h3 className="font-semibold text-lg text-gray-900 truncate">
-                    {friendRequest.fullName}
-                  </h3>
-
-                  <div className="flex flex-col gap-2 w-full">
-                    <Button
-                      onClick={() => {}}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                    >
-                      Confirm
-                    </Button>
-
-                    <Button
-                      onClick={() =>
-                        handleRejectFriendRequest(friendRequest._id)
-                      }
-                      variant="secondary"
-                      className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Card>
-
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold">List Of Friend Accepts</h2>
-
-        <Row gutter={[16, 16]}>
-          {friendAccepts.map((friendAccept) => (
-            <Col key={friendAccept._id} span={6}>
-              <Card className="w-full overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white hover:shadow-md transition-shadow duration-300 pt-0">
-                <div className="h-50 w-full overflow-hidden relative group">
-                  <img
-                    src={friendAccept.avatar}
-                    alt={friendAccept.fullName}
-                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <Divider />
-
-                <CardContent className="p-4 flex flex-col gap-3">
-                  <h3 className="font-semibold text-lg text-gray-900 truncate">
-                    {friendAccept.fullName}
-                  </h3>
-
-                  <Button
-                    onClick={() => handleRejectFriendRequest(friendAccept._id)}
-                    variant="secondary"
-                    className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium"
-                  >
-                    Delete
-                  </Button>
-                </CardContent>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Card>
+      <FriendsList friends={friends} />
     </>
   );
 }

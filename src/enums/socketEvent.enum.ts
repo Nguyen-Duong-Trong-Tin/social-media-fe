@@ -4,6 +4,13 @@ enum SocketEvent {
 
   CLIENT_REJECT_FRIEND_REQUEST = "client.reject.friend.request",
   SERVER_RESPONSE_REJECT_FRIEND_REQUEST = "server.response.reject.friend.request",
+
+  CLIENT_ACCEPT_FRIEND_REQUEST = "client.accept.friend.request",
+  SERVER_RESPONSE_ACCEPT_FRIEND_REQUEST = "server.response.accept.friend.request",
+
+  CLIENT_DELETE_FRIEND_ACCEPT = "client.delete.friend.accept",
+  SERVER_RESPONSE_DELETE_FRIEND_ACCEPT = "server.response.delete.friend.accept",
+
 }
 
 export default SocketEvent;

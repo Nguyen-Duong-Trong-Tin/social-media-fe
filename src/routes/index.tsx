@@ -13,6 +13,7 @@ import GroupProfilePage from "@/pages/GroupProfile";
 import GroupProfileViewInvitation from "@/pages/GroupProfile/GroupProfileViewInvitation";
 import GroupProfileTasksScoringDetail from "@/pages/GroupProfile/GroupProfileTasksScoringDetail";
 import FriendsPage from "@/pages/Friends";
+import SearchPage from "@/pages/Search";
 
 const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
           {
             path: "friends",
             element: <FriendsPage />,
+          },
+          {
+            path: "search",
+            element: <SearchPage />,
           },
         ],
       },

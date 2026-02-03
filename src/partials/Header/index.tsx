@@ -1,5 +1,6 @@
 import { Input, Button } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import { deleteCookie, getCookie } from "@/helpers/cookies";
 
@@ -8,6 +9,7 @@ import "./Header.css";
 function Header() {
   const navigate = useNavigate();
   const userSlug = getCookie("userSlug");
+  const [searchText, setSearchText] = useState("");
 
   const navigateToHome = () => {
     navigate("/");
@@ -34,6 +36,12 @@ function Header() {
     navigate("/login");
   };
 
+  const handleSearch = () => {
+    const query = searchText.trim();
+    if (!query) return;
+    navigate(`/search?q=${encodeURIComponent(query)}`);
+  };
+
   return (
     <header className="header-container">
       {/* Logo */}
@@ -48,6 +56,9 @@ function Header() {
           placeholder="Search people, groups..."
           prefix={<SearchOutlined />}
           allowClear
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onPressEnter={handleSearch}
         />
       </div>
 

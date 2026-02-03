@@ -1,8 +1,8 @@
 :root {
   --bg: #0b1222;
   --bg-soft: #0f172a;
-  --accent: #10b981;
-  --accent-2: #22d3ee;
+  --accent: #2563eb;
+  --accent-2: #38bdf8;
   --text: #0f172a;
   --muted: #6b7280;
   --card: rgba(255, 255, 255, 0.94);
@@ -16,8 +16,8 @@
   justify-content: center;
   min-height: 100vh;
   padding: 32px 18px;
-  background: radial-gradient(circle at 18% 18%, rgba(16, 185, 129, 0.14), transparent 36%),
-    radial-gradient(circle at 82% 12%, rgba(34, 211, 238, 0.18), transparent 40%),
+  background: radial-gradient(circle at 18% 18%, rgba(37, 99, 235, 0.14), transparent 36%),
+    radial-gradient(circle at 82% 12%, rgba(56, 189, 248, 0.18), transparent 40%),
     linear-gradient(140deg, var(--bg), var(--bg-soft));
   overflow: hidden;
   font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
@@ -100,7 +100,7 @@
 .ant-input-affix-wrapper-focused,
 .ant-input-affix-wrapper:hover {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18) !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18) !important;
 }
 
 .login-btn {
@@ -109,7 +109,7 @@
   border: none;
   border-radius: 10px;
   background: linear-gradient(120deg, var(--accent), var(--accent-2));
-  box-shadow: 0 12px 26px rgba(16, 185, 129, 0.32);
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.32);
   font-weight: 700;
 }
 
