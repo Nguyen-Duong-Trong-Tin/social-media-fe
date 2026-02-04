@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Col, Result, Row, Tabs, type TabsProps } from "antd";
+import { toast } from "react-toastify";
 
 import { getCookie } from "@/helpers/cookies";
 import { findBySlugGroup } from "@/services/group";
+import { findArticleGroups } from "@/services/articleGroup";
 import ButtonGoBack from "@/components/ButtonGoBack";
 import type IGroup from "@/interfaces/group.interface";
+import type IArticleGroup from "@/interfaces/articleGroup.interface";
 
 import GroupProfileHeader from "./GroupProfileHeader";
 import GroupProfileMembers from "./GroupProfileMembers";
 import GroupProfileSettings from "./GroupProfileSettings";
 import GroupProfileDescription from "./GroupProfileDescription";
+import GroupProfileArticles from "./GroupProfileArticles";
 
 import "./GroupProfile.css";
 import GroupProfileTasks from "./GroupProfileTasks";
@@ -22,6 +26,8 @@ function GroupProfilePage() {
   const accessToken = getCookie("accessToken");
 
   const [group, setGroup] = useState<IGroup>();
+  const [articleGroups, setArticleGroups] = useState<IArticleGroup[]>([]);
+  const [articleGroupsLoading, setArticleGroupsLoading] = useState(false);
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -38,20 +44,59 @@ function GroupProfilePage() {
     console.log(key);
   };
 
+  const fetchArticleGroups = useCallback(async () => {
+    if (!group?._id) return;
+
+    try {
+      setArticleGroupsLoading(true);
+      const {
+        data: {
+          data: { articleGroups: responseArticleGroups },
+        },
+      } = await findArticleGroups({
+        accessToken,
+        filter: { groupId: group._id, status: "active" },
+        page: 1,
+        limit: 10,
+      });
+
+      setArticleGroups(responseArticleGroups.items);
+    } catch {
+      toast.error("Failed to load group articles.");
+    } finally {
+      setArticleGroupsLoading(false);
+    }
+  }, [accessToken, group]);
+
+  useEffect(() => {
+    if (!group) return;
+    fetchArticleGroups();
+  }, [fetchArticleGroups, group]);
+
   const tabItems: TabsProps["items"] = [
     {
       key: "1",
       label: "Tasks",
+      children: <>{group && <GroupProfileTasks group={group} />}</>,
+    },
+    {
+      key: "2",
+      label: "Articles",
       children: (
         <>
-          {group && (
-            <GroupProfileTasks group={group} />
-          )}
+          <GroupProfileArticles
+            group={group}
+            articles={articleGroups}
+            loading={articleGroupsLoading}
+            accessToken={accessToken}
+            userId={userId}
+            onReload={fetchArticleGroups}
+          />
         </>
       ),
     },
     {
-      key: "2",
+      key: "3",
       label: "Members",
       children: (
         <>
@@ -62,7 +107,7 @@ function GroupProfilePage() {
       ),
     },
     {
-      key: "3",
+      key: "4",
       label: "AI Assistant",
       children: (
         <>
@@ -71,7 +116,7 @@ function GroupProfilePage() {
       ),
     },
     {
-      key: "4",
+      key: "5",
       label: "Settings",
       children: (
         <>
