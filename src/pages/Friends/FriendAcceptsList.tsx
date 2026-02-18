@@ -1,4 +1,5 @@
 import { Col, Divider, Row } from "antd";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,25 +16,30 @@ function FriendAcceptsList({
 }: FriendAcceptsListProps) {
   return (
     <Card className="p-6">
-      <h2 className="text-2xl font-bold">List Of Friend Accepts</h2>
+      <h2 className="text-2xl font-bold">List of friend accepts</h2>
 
       <Row gutter={[16, 16]}>
         {friendAccepts.map((friendAccept) => (
           <Col key={friendAccept._id} span={6}>
             <Card className="w-full overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white hover:shadow-md transition-shadow duration-300 pt-0">
-              <div className="h-50 w-full overflow-hidden relative group">
+              <Link
+                to={`/profile/${friendAccept.slug}`}
+                className="block h-50 w-full overflow-hidden relative group"
+              >
                 <img
                   src={friendAccept.avatar}
                   alt={friendAccept.fullName}
                   className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                 />
-              </div>
+              </Link>
               <Divider />
 
               <CardContent className="p-4 flex flex-col gap-3">
-                <h3 className="font-semibold text-lg text-gray-900 truncate">
-                  {friendAccept.fullName}
-                </h3>
+                <Link to={`/profile/${friendAccept.slug}`}>
+                  <h3 className="font-semibold text-lg text-gray-900 truncate">
+                    {friendAccept.fullName}
+                  </h3>
+                </Link>
 
                 <Button
                   onClick={() => onDelete(friendAccept._id)}

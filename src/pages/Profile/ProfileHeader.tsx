@@ -1,8 +1,16 @@
 import { Image } from "antd";
 
+import type { ReactNode } from "react";
+
 import type IUser from "@/interfaces/user.interface";
 
-function ProfileHeader({ user }: { user?: IUser }) {
+function ProfileHeader({
+  user,
+  actions,
+}: {
+  user?: IUser;
+  actions?: ReactNode;
+}) {
   return (
     <>
       <div className="cover-photo">
@@ -37,6 +45,8 @@ function ProfileHeader({ user }: { user?: IUser }) {
           {user && user.fullName}
         </h2>
       </div>
+
+      {actions && <div className="profile-actions">{actions}</div>}
     </>
   );
 }

@@ -50,7 +50,7 @@ function ListOfSuggestedGroups() {
   return (
     <>
       <Card className="p-6">
-        <h2 className="text-2xl font-bold">List Of Suggested Groups</h2>
+        <h2 className="text-2xl font-bold">List of suggested groups</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {groups.map((group, index) => (

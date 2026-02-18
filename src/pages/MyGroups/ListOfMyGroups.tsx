@@ -67,7 +67,7 @@ function ListOfMyGroups() {
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">List Of My Groups</h2>
+        <h2 className="text-2xl font-bold">List of my groups</h2>
         <div className="w-1/3">
           <Search
             placeholder={"Search groups..."}

@@ -30,6 +30,8 @@ import {
   updateArticleUser,
 } from "@/services/articleUser";
 
+import "./Profile.css";
+
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
 type FieldType = {
@@ -64,6 +66,9 @@ function ArticleUsersSection({
   const [description, setDescription] = useState("");
   const [imagesFileList, setImagesFileList] = useState<UploadFile[]>([]);
   const [videosFileList, setVideosFileList] = useState<UploadFile[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewSrc, setPreviewSrc] = useState("");
+  const [previewType, setPreviewType] = useState<"image" | "video">("image");
 
   const modalTitle = useMemo(
     () => (editingArticle ? "Edit Article" : "Create Article"),
@@ -77,21 +82,38 @@ function ArticleUsersSection({
     setImagesFileList([]);
     setVideosFileList([]);
     form.resetFields();
+    form.setFieldsValue({ title: "", images: [], videos: [] });
     setIsModalOpen(true);
   };
 
   const openEditModal = (article: IArticleUser) => {
+    const imageUrls = normalizeMediaList(article.images as unknown as string[] | string);
+    const videoUrls = normalizeMediaList(article.videos as unknown as string[] | string);
+    const nextImages = toUploadFileList(imageUrls, "image");
+    const nextVideos = toUploadFileList(videoUrls, "video");
+
     setEditingArticle(article);
     setTitle(article.title);
     setDescription(article.description);
-    setImagesFileList([]);
-    setVideosFileList([]);
-    form.resetFields();
+    setImagesFileList(nextImages);
+    setVideosFileList(nextVideos);
+    form.setFieldsValue({ title: article.title, images: nextImages, videos: nextVideos });
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  const openPreview = (type: "image" | "video", src: string) => {
+    setPreviewType(type);
+    setPreviewSrc(src);
+    setPreviewOpen(true);
+  };
+
+  const closePreview = () => {
+    setPreviewOpen(false);
+    setPreviewSrc("");
   };
 
   const onChangeImages: UploadProps["onChange"] = ({ fileList }) => {
@@ -115,10 +137,50 @@ function ArticleUsersSection({
     fileWindow?.document.write(`<iframe src="${src}" style="width:100%;height:100%" />`);
   };
 
-  const normFile = (e: any) => {
+  const normFile = (e?: { fileList?: UploadFile[] } | UploadFile[]) => {
     if (!e) return [];
-    return e.fileList;
+    return Array.isArray(e) ? e : e.fileList ?? [];
   };
+
+  const normalizeMediaList = (media?: string[] | string) => {
+    if (!media) return [];
+    if (Array.isArray(media)) return media;
+
+    const trimmed = media.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.map((item) => String(item).trim()).filter(Boolean);
+        }
+      } catch {
+        // fall through to delimiter split
+      }
+    }
+
+    return trimmed
+      .split(/[,;|\n]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const toUploadFileList = (urls: string[], type: "image" | "video") =>
+    urls.map((url, index) => ({
+      uid: `${type}-${index}-${url}`,
+      name: url.split("/").pop() ?? `${type}-${index + 1}`,
+      status: "done" as const,
+      url,
+    }));
+
+  const getExistingUrls = (files: UploadFile[]) =>
+    files
+      .filter((file) => {
+        const hasNewFile = Boolean(
+          file.originFileObj || (file as UploadFile & { originFile?: File }).originFile
+        );
+        return !hasNewFile && Boolean(file.url);
+      })
+      .map((file) => String(file.url));
 
   const handleSave: FormProps<FieldType>["onFinish"] = async () => {
     if (!user?._id) return;
@@ -132,6 +194,13 @@ function ArticleUsersSection({
     fd.append("title", title);
     fd.append("description", description);
     fd.append("userId", user._id);
+
+    if (editingArticle) {
+      const existingImages = getExistingUrls(imagesFileList);
+      const existingVideos = getExistingUrls(videosFileList);
+      fd.append("existingImages", JSON.stringify(existingImages));
+      fd.append("existingVideos", JSON.stringify(existingVideos));
+    }
 
     const imagesList = imagesFileList || [];
     for (const file of imagesList) {
@@ -196,6 +265,67 @@ function ArticleUsersSection({
     }
   };
 
+  const renderMedia = (article: IArticleUser) => {
+    const images = normalizeMediaList(article.images as unknown as string[] | string);
+    const videos = normalizeMediaList(article.videos as unknown as string[] | string);
+    const hasMedia = images.length > 0 || videos.length > 0;
+
+    if (!hasMedia) {
+      return <div className="profile-article-placeholder">No media</div>;
+    }
+
+    return (
+      <div className="profile-article-media-grid">
+        {images.map((src, index) => (
+          <button
+            key={`image-${src}-${index}`}
+            type="button"
+            className="profile-article-media-button"
+            onClick={() => openPreview("image", src)}
+            aria-label={`View image ${index + 1}`}
+          >
+            <span className="profile-article-media-badge" aria-hidden="true">
+              IMG
+            </span>
+            <img
+              src={src}
+              alt={article.title}
+              className="profile-article-media-item"
+              loading="lazy"
+            />
+          </button>
+        ))}
+        {videos.map((src, index) => (
+          <button
+            key={`video-${src}-${index}`}
+            type="button"
+            className="profile-article-media-button"
+            onClick={() => openPreview("video", src)}
+            aria-label={`View video ${index + 1}`}
+          >
+            <span className="profile-article-media-badge" aria-hidden="true">
+              VID
+            </span>
+            <video
+              className="profile-article-media-item"
+              preload="metadata"
+              muted
+              playsInline
+            >
+              <source src={src} />
+            </video>
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  const formatDateTime = (value: Date | string) =>
+    new Intl.DateTimeFormat("en", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+
   return (
     <Card className="profile-card">
       <CardHeader>
@@ -220,15 +350,12 @@ function ArticleUsersSection({
           <div className="profile-article-grid">
             {articles.map((article) => (
               <article key={article._id} className="profile-article-card">
-                <div className="profile-article-media">
-                  {article.images?.length ? (
-                    <img src={article.images[0]} alt={article.title} />
-                  ) : (
-                    <div className="profile-article-placeholder">No image</div>
-                  )}
-                </div>
                 <div className="profile-article-content">
                   <h3>{article.title}</h3>
+                  <div className="profile-article-meta">
+                    <span>Created: {formatDateTime(article.createdAt)}</span>
+                    <span>Updated: {formatDateTime(article.updatedAt)}</span>
+                  </div>
                   <div
                     className="profile-article-description"
                     dangerouslySetInnerHTML={{ __html: article.description }}
@@ -252,6 +379,7 @@ function ArticleUsersSection({
                     </div>
                   )}
                 </div>
+                <div className="profile-article-media">{renderMedia(article)}</div>
               </article>
             ))}
           </div>
@@ -324,10 +452,20 @@ function ArticleUsersSection({
               multiple
               accept="video/*"
             >
-              <Button variant="outline">Upload videos</Button>
+              <Button variant="outline" type="button">
+                Upload videos
+              </Button>
             </Upload>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal open={previewOpen} onCancel={closePreview} footer={null} title="Preview">
+        {previewType === "image" ? (
+          <img src={previewSrc} alt="Preview" style={{ width: "100%" }} />
+        ) : (
+          <video src={previewSrc} controls style={{ width: "100%" }} />
+        )}
       </Modal>
     </Card>
   );

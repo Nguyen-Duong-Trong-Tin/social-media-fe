@@ -87,7 +87,7 @@ function Home() {
     <>
       <Card className="p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">List Of Group Topics</h2>
+          <h2 className="text-2xl font-bold">List of group topics</h2>
           <div className="w-1/3">
             <Search
               placeholder={"Search group topics..."}

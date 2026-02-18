@@ -43,6 +43,14 @@
   justify-content: center;
 }
 
+.profile-page .profile-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .profile-body {
   margin-top: 24px;
 }
@@ -191,9 +199,9 @@
 }
 
 .profile-article-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .profile-article-card {
@@ -203,7 +211,7 @@
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 12px;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -213,13 +221,52 @@
 }
 
 .profile-article-media {
-  height: 140px;
-  background: #f1f5f9;
+  padding: 0 14px 16px;
 }
 
-.profile-article-media img {
+.profile-article-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.profile-article-media-button {
+  position: relative;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.profile-article-media-button:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 2px;
+}
+
+.profile-article-media-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #0f172a;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 6px;
+}
+
+.profile-article-media-item {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  background: #f1f5f9;
   object-fit: cover;
 }
 
@@ -227,9 +274,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 140px;
   font-size: 12px;
   color: #94a3b8;
+  background: #f8fafc;
+  border-radius: 10px;
 }
 
 .profile-article-content {
@@ -241,6 +290,15 @@
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 8px;
+}
+
+.profile-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
 }
 
 .profile-article-content p {

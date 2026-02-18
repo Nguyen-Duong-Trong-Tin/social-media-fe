@@ -36,3 +36,26 @@ export const findMessages = async ({
   });
   return response;
 };
+
+export const uploadMessageImages = async ({
+  accessToken,
+  files,
+}: {
+  accessToken: string;
+  files: File[];
+}) => {
+  const formData = new FormData();
+
+  files.forEach((file) => {
+    formData.append("images", file);
+  });
+
+  const response = await axios.post(`${v1}/messages/upload-images`, formData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response;
+};
