@@ -1,16 +1,20 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { Badge } from "antd";
+import { MessageOutlined } from "@ant-design/icons";
 
 import Footer from "@/partials/Footer";
 
 import Header from "../partials/Header";
 import { deleteCookie, getCookie, setCookie } from "../helpers/cookies";
 import { authRefreshToken, authVerifyAccessToken } from "../services/auth";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 import "./layoutDefault.css";
 
 function LayoutDefault() {
   const navigate = useNavigate();
+  const { counts } = useNotifications();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -60,6 +64,17 @@ function LayoutDefault() {
           <Footer />
         </footer>
       </div>
+
+      <button
+        type="button"
+        className="floating-message-button"
+        onClick={() => navigate("/friends")}
+        aria-label="Open messages"
+      >
+        <Badge count={counts.messages} size="small" offset={[6, -4]}>
+          <MessageOutlined />
+        </Badge>
+      </button>
     </>
   );
 }

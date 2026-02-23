@@ -59,3 +59,53 @@ export const uploadMessageImages = async ({
 
   return response;
 };
+
+export const uploadMessageVideos = async ({
+  accessToken,
+  files,
+}: {
+  accessToken: string;
+  files: File[];
+}) => {
+  const formData = new FormData();
+
+  files.forEach((file) => {
+    formData.append("videos", file);
+  });
+
+  const response = await axios.post(`${v1}/messages/upload-videos`, formData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response;
+};
+
+export const uploadMessageMaterials = async ({
+  accessToken,
+  files,
+}: {
+  accessToken: string;
+  files: File[];
+}) => {
+  const formData = new FormData();
+
+  files.forEach((file) => {
+    formData.append("materials", file);
+  });
+
+  const response = await axios.post(
+    `${v1}/messages/upload-materials`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return response;
+};

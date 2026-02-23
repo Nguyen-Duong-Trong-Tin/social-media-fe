@@ -1,8 +1,9 @@
-import { Input, Button } from "antd";
+import { Badge, Button, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { SearchOutlined } from "@ant-design/icons";
+import { BellOutlined, SearchOutlined } from "@ant-design/icons";
 import { deleteCookie, getCookie } from "@/helpers/cookies";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 import "./Header.css";
 
@@ -10,6 +11,7 @@ function Header() {
   const navigate = useNavigate();
   const userSlug = getCookie("userSlug");
   const [searchText, setSearchText] = useState("");
+  const { counts } = useNotifications();
 
   const navigateToHome = () => {
     navigate("/");
@@ -25,6 +27,10 @@ function Header() {
 
   const navigateToFriends = () => {
     navigate(`/friends`);
+  };
+
+  const navigateToNotifications = () => {
+    navigate("/notifications");
   };
 
   const handleLogout = () => {
@@ -77,6 +83,19 @@ function Header() {
           Friends
         </a>
       </nav>
+
+      <div className="header-actions">
+        <Badge count={counts.total} size="small" offset={[-2, 2]}>
+          <button
+            type="button"
+            className="header-icon-btn"
+            onClick={navigateToNotifications}
+            aria-label="Notifications"
+          >
+            <BellOutlined />
+          </button>
+        </Badge>
+      </div>
 
       {/* Logout */}
       <Button className="header-logout-btn" onClick={handleLogout}>

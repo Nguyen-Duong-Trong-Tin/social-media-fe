@@ -6,6 +6,7 @@ import { getCookie } from "@/helpers/cookies";
 import { findUserById, findUsers } from "@/services/user";
 import SocketEvent from "@/enums/socketEvent.enum";
 import type IUser from "@/interfaces/user.interface";
+import { useNotifications } from "@/contexts/NotificationContext";
 import type {
   ServerResponseRejectFriendRequest,
   ServerResponseAcceptFriendRequest,
@@ -21,6 +22,7 @@ import PeopleYouMayKnowList from "@/pages/Friends/PeopleYouMayKnowList";
 function FriendsPage() {
   const userId = getCookie("userId");
   const accessToken = getCookie("accessToken");
+  const { markFriendRequestsRead } = useNotifications();
 
   const [reload, setReload] = useState(false);
   const [friendRequests, setFriendRequests] = useState<IUser[]>([]);
@@ -96,6 +98,10 @@ function FriendsPage() {
     };
     fetchApi();
   }, [accessToken, userId, reload]);
+
+  useEffect(() => {
+    markFriendRequestsRead();
+  }, [markFriendRequestsRead]);
 
   useEffect(() => {
     const handler = (data: ServerResponseRejectFriendRequest) => {

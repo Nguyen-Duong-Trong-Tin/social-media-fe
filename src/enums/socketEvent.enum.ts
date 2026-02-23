@@ -23,6 +23,8 @@ enum SocketEvent {
   CLIENT_DELETE_FRIEND = "client.delete.friend",
   SERVER_RESPONSE_DELETE_FRIEND = "server.response.delete.friend",
 
+  SERVER_PUSH_NOTIFICATION = "server.push.notification",
+
 }
 
 export default SocketEvent;

@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 
 import { socket } from "./services/socket";
+import { NotificationProvider } from "./contexts/NotificationContext";
 
 import "./App.css";
 
@@ -18,7 +19,9 @@ function App() {
     <>
       <ToastContainer />
 
-      <Outlet />
+      <NotificationProvider>
+        <Outlet />
+      </NotificationProvider>
     </>
   );
 }

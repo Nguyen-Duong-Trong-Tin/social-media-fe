@@ -9,6 +9,8 @@ export interface ServerResponseMessageToRoomChatDto {
   roomChatId: string;
   content: string;
   images?: string[];
+  videos?: string[];
+  materials?: string[];
   createdAt?: string;
 };
 
