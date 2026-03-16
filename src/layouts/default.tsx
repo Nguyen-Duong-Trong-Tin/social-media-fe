@@ -68,7 +68,7 @@ function LayoutDefault() {
       <button
         type="button"
         className="floating-message-button"
-        onClick={() => navigate("/friends")}
+        onClick={() => navigate("/messages")}
         aria-label="Open messages"
       >
         <Badge count={counts.messages} size="small" offset={[6, -4]}>

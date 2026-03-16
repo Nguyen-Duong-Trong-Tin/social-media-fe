@@ -8,7 +8,9 @@ import type ChatMessage from "@/interfaces/chatMessage.interface";
 type MessageListProps = {
   messages: ChatMessage[];
   userId?: string;
-  messagesEndRef: RefObject<HTMLDivElement>;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
+  userById?: Record<string, { fullName?: string; avatar?: string }>;
+  showSenderName?: boolean;
 };
 
 function renderMessageContent(item: ChatMessage) {
@@ -101,7 +103,13 @@ function renderMessageContent(item: ChatMessage) {
   );
 }
 
-function MessageList({ messages, userId, messagesEndRef }: MessageListProps) {
+function MessageList({
+  messages,
+  userId,
+  messagesEndRef,
+  userById,
+  showSenderName = false,
+}: MessageListProps) {
   return (
     <Flex
       vertical
@@ -109,17 +117,39 @@ function MessageList({ messages, userId, messagesEndRef }: MessageListProps) {
       className="overflow-y-auto pr-2"
       style={{ height: 420 }}
     >
-      {messages.map((item, index) => (
-        <Flex key={`${item.userId}-${index}`} gap="small" wrap>
-          <div style={{ width: "100%" }}>
-            <Bubble
-              content={renderMessageContent(item)}
-              placement={item.userId === userId ? "end" : "start"}
-              avatar={<Avatar icon={<UserOutlined />} />}
-            />
+      {messages.map((item, index) => {
+        const sender = userById?.[item.userId];
+        const displayName =
+          item.userId === userId ? "You" : sender?.fullName || "Unknown";
+        const showName = Boolean(userById) && showSenderName;
+        const bubbleContent = showName ? (
+          <div className="flex flex-col gap-1">
+            <div className="text-xs text-gray-500 text-left">
+              {displayName}
+            </div>
+            {renderMessageContent(item)}
           </div>
-        </Flex>
-      ))}
+        ) : (
+          renderMessageContent(item)
+        );
+
+        return (
+          <Flex key={`${item.userId}-${index}`} gap="small" wrap>
+            <div style={{ width: "100%" }}>
+              <Bubble
+                content={bubbleContent}
+                placement={item.userId === userId ? "end" : "start"}
+                avatar={
+                  <Avatar
+                    src={sender?.avatar}
+                    icon={!sender?.avatar ? <UserOutlined /> : undefined}
+                  />
+                }
+              />
+            </div>
+          </Flex>
+        );
+      })}
 
       <div ref={messagesEndRef} />
     </Flex>

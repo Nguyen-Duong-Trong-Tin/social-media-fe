@@ -15,6 +15,7 @@ import GroupProfileMembers from "./GroupProfileMembers";
 import GroupProfileSettings from "./GroupProfileSettings";
 import GroupProfileDescription from "./GroupProfileDescription";
 import GroupProfileArticles from "./GroupProfileArticles";
+import GroupProfileChat from "./GroupProfileChat";
 
 import "./GroupProfile.css";
 import GroupProfileTasks from "./GroupProfileTasks";
@@ -80,7 +81,7 @@ function GroupProfilePage() {
       children: <>{group && <GroupProfileTasks group={group} />}</>,
     },
     {
-      key: "2",
+      key: "3",
       label: "Articles",
       children: (
         <>
@@ -96,7 +97,7 @@ function GroupProfilePage() {
       ),
     },
     {
-      key: "3",
+      key: "4",
       label: "Members",
       children: (
         <>
@@ -107,7 +108,12 @@ function GroupProfilePage() {
       ),
     },
     {
-      key: "4",
+      key: "2",
+      label: "Chat",
+      children: <>{group && <GroupProfileChat group={group} />}</>,
+    },
+    {
+      key: "5",
       label: "AI Assistant",
       children: (
         <>
@@ -116,7 +122,7 @@ function GroupProfilePage() {
       ),
     },
     {
-      key: "5",
+      key: "6",
       label: "Settings",
       children: (
         <>

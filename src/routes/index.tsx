@@ -15,7 +15,7 @@ import GroupProfileTasksScoringDetail from "@/pages/GroupProfile/GroupProfileTas
 import FriendsPage from "@/pages/Friends";
 import SearchPage from "@/pages/Search";
 import RoomChat from "@/pages/RoomChat";
-import NotificationsPage from "@/pages/Notifications";
+import MessagesPage from "@/pages/Messages";
 
 const router = createBrowserRouter([
   {
@@ -58,8 +58,8 @@ const router = createBrowserRouter([
             element: <FriendsPage />,
           },
           {
-            path: "notifications",
-            element: <NotificationsPage />,
+            path: "messages",
+            element: <MessagesPage />,
           },
           {
             path: "room-chat/:roomChatId",

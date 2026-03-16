@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { useLocation, useParams } from "react-router-dom";
 import { Avatar, Flex } from "antd";
+import { TeamOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
-import { UserOutlined } from "@ant-design/icons";
 
 import { Card } from "@/components/ui/card";
 import { socket } from "@/services/socket";
@@ -15,8 +14,10 @@ import {
   uploadMessageMaterials,
   uploadMessageVideos,
 } from "@/services/message";
-import { findUserById, userFindUserByIds } from "@/services/user";
+import { findRoomChatByGroupId } from "@/services/roomChat";
+import { userFindUserByIds } from "@/services/user";
 import SocketEvent from "@/enums/socketEvent.enum";
+import type IGroup from "@/interfaces/group.interface";
 import type IMessage from "@/interfaces/message.interface";
 import type IUser from "@/interfaces/user.interface";
 import type {
@@ -24,35 +25,34 @@ import type {
   ServerResponseTypingToRoomChatDto,
 } from "@/dtos/dtos/message.dto";
 import type ChatMessage from "@/interfaces/chatMessage.interface";
-import ChatHeader from "./ChatHeader";
-import MessageList from "./MessageList";
-import TypingIndicator from "./TypingIndicator";
-import ImagePreviewList from "./ImagePreviewList";
-import VideoPreviewList from "./VideoPreviewList";
-import MaterialPreviewList from "./MaterialPreviewList";
-import ChatInput from "./ChatInput";
+import ChatInput from "@/pages/RoomChat/ChatInput";
+import ImagePreviewList from "@/pages/RoomChat/ImagePreviewList";
+import MaterialPreviewList from "@/pages/RoomChat/MaterialPreviewList";
+import MessageList from "@/pages/RoomChat/MessageList";
+import TypingIndicator from "@/pages/RoomChat/TypingIndicator";
+import VideoPreviewList from "@/pages/RoomChat/VideoPreviewList";
 
-function RoomChat() {
-  const { roomChatId } = useParams();
+type GroupProfileChatProps = {
+  group: IGroup;
+};
+
+function GroupProfileChat({ group }: GroupProfileChatProps) {
   const accessToken = getCookie("accessToken");
   const userId = getCookie("userId");
-  const location = useLocation();
-  const friend = (location.state as { friend?: IUser } | null)?.friend;
   const { markMessagesRead, setActiveRoomChatId } = useNotifications();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const typingClearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const typingClearTimeoutsRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const imagePreviewsRef = useRef<string[]>([]);
   const videoPreviewsRef = useRef<string[]>([]);
 
+  const [roomChatId, setRoomChatId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userById, setUserById] = useState<Record<string, IUser>>({});
   const [isSending, setIsSending] = useState(false);
-  const [isFriendTyping, setIsFriendTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isUploadingMaterial, setIsUploadingMaterial] = useState(false);
@@ -72,6 +72,66 @@ function RoomChat() {
   }, [messages]);
 
   useEffect(() => {
+    const fetchRoomChat = async () => {
+      if (!group?._id || !accessToken || !userId) {
+        return;
+      }
+
+      try {
+        const responseRoomChat = await findRoomChatByGroupId({
+          accessToken,
+          groupId: group._id,
+          userId,
+        });
+
+        const roomChat = responseRoomChat?.data?.data;
+        if (!roomChat?._id) {
+          return;
+        }
+
+        setRoomChatId(roomChat._id);
+      } catch {
+        toast.error("Unable to load group chat.");
+      }
+    };
+
+    fetchRoomChat();
+  }, [accessToken, group, userId]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!accessToken || !group?.users?.length) {
+        return;
+      }
+
+      const ids = group.users
+        .map((user) => user.userId)
+        .filter((id) => typeof id === "string" && id.trim());
+
+      if (!ids.length) {
+        return;
+      }
+
+      try {
+        const responseUsers = await userFindUserByIds({ accessToken, ids });
+        const users = responseUsers?.data?.data || [];
+        const nextMap: Record<string, IUser> = {};
+        users.forEach((user: IUser) => {
+          const key = user._id || (user as { id?: string }).id;
+          if (key) {
+            nextMap[key] = user;
+          }
+        });
+        setUserById(nextMap);
+      } catch {
+        toast.error("Unable to load group members.");
+      }
+    };
+
+    fetchUsers();
+  }, [accessToken, group]);
+
+  useEffect(() => {
     setActiveRoomChatId(roomChatId || null);
     if (roomChatId) {
       markMessagesRead(roomChatId);
@@ -83,7 +143,7 @@ function RoomChat() {
   }, [markMessagesRead, roomChatId, setActiveRoomChatId]);
 
   useEffect(() => {
-    const fetchApi = async () => {
+    const fetchMessages = async () => {
       if (!roomChatId) {
         return;
       }
@@ -109,7 +169,7 @@ function RoomChat() {
       }
     };
 
-    fetchApi();
+    fetchMessages();
   }, [accessToken, roomChatId]);
 
   useEffect(() => {
@@ -147,35 +207,6 @@ function RoomChat() {
 
     fetchMissingUsers();
   }, [accessToken, messages, userById]);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!accessToken || !userId) {
-        return;
-      }
-
-      const nextMap: Record<string, IUser> = {};
-
-      try {
-        const responseMe = await findUserById({ accessToken, id: userId });
-        if (responseMe?.data?.data?._id) {
-          nextMap[responseMe.data.data._id] = responseMe.data.data as IUser;
-        }
-      } catch {
-        // ignore, fallback to unknown user
-      }
-
-      if (friend?._id) {
-        nextMap[friend._id] = friend;
-      }
-
-      if (Object.keys(nextMap).length > 0) {
-        setUserById(nextMap);
-      }
-    };
-
-    fetchUsers();
-  }, [accessToken, friend, userId]);
 
   useEffect(() => {
     const handler = (data: ServerResponseMessageToRoomChatDto) => {
@@ -243,8 +274,45 @@ function RoomChat() {
     return () => {
       imagePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
       videoPreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      typingClearTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
     };
   }, []);
+
+  const updateTypingUsers = useCallback(
+    (typingUserId: string, isTyping: boolean) => {
+      setTypingUsers((prev) => {
+        const next = new Set(prev);
+        if (isTyping) {
+          next.add(typingUserId);
+        } else {
+          next.delete(typingUserId);
+        }
+        return next;
+      });
+
+      if (typingClearTimeoutsRef.current.has(typingUserId)) {
+        const currentTimeout = typingClearTimeoutsRef.current.get(typingUserId);
+        if (currentTimeout) {
+          clearTimeout(currentTimeout);
+        }
+        typingClearTimeoutsRef.current.delete(typingUserId);
+      }
+
+      if (isTyping) {
+        const timeout = setTimeout(() => {
+          setTypingUsers((prev) => {
+            const next = new Set(prev);
+            next.delete(typingUserId);
+            return next;
+          });
+          typingClearTimeoutsRef.current.delete(typingUserId);
+        }, 2000);
+
+        typingClearTimeoutsRef.current.set(typingUserId, timeout);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const handler = (data: ServerResponseTypingToRoomChatDto) => {
@@ -256,17 +324,7 @@ function RoomChat() {
         return;
       }
 
-      setIsFriendTyping(data.isTyping);
-
-      if (data.isTyping) {
-        if (typingClearTimeoutRef.current) {
-          clearTimeout(typingClearTimeoutRef.current);
-        }
-
-        typingClearTimeoutRef.current = setTimeout(() => {
-          setIsFriendTyping(false);
-        }, 2000);
-      }
+      updateTypingUsers(data.userId, data.isTyping);
     };
 
     socket.on(SocketEvent.SERVER_RESPONSE_TYPING_TO_ROOM_CHAT, handler);
@@ -274,7 +332,7 @@ function RoomChat() {
     return () => {
       socket.off(SocketEvent.SERVER_RESPONSE_TYPING_TO_ROOM_CHAT, handler);
     };
-  }, [roomChatId, userId]);
+  }, [roomChatId, updateTypingUsers, userId]);
 
   const emitTyping = (isTyping: boolean) => {
     if (!roomChatId || !userId) {
@@ -358,7 +416,7 @@ function RoomChat() {
         images: nextImages,
         videos: nextVideos,
         materials: nextMaterials,
-        userId,
+        userId: userId || "",
         status: "sending",
       },
     ]);
@@ -407,22 +465,32 @@ function RoomChat() {
         setIsUploadingVideo(selectedVideos.length > 0);
         setIsUploadingMaterial(selectedMaterials.length > 0);
 
-        const [imagesResponse, videosResponse, materialsResponse] = await Promise.all([
-          selectedImages.length > 0
-            ? uploadMessageImages({ accessToken, files: selectedImages })
-            : Promise.resolve(null),
-          selectedVideos.length > 0
-            ? uploadMessageVideos({ accessToken, files: selectedVideos })
-            : Promise.resolve(null),
-          selectedMaterials.length > 0
-            ? uploadMessageMaterials({ accessToken, files: selectedMaterials })
-            : Promise.resolve(null),
-        ]);
+        const [imagesResponse, videosResponse, materialsResponse] =
+          await Promise.all([
+            selectedImages.length > 0
+              ? uploadMessageImages({ accessToken, files: selectedImages })
+              : Promise.resolve(null),
+            selectedVideos.length > 0
+              ? uploadMessageVideos({ accessToken, files: selectedVideos })
+              : Promise.resolve(null),
+            selectedMaterials.length > 0
+              ? uploadMessageMaterials({
+                  accessToken,
+                  files: selectedMaterials,
+                })
+              : Promise.resolve(null),
+          ]);
 
         const images = imagesResponse?.data?.data?.images || [];
         const videos = videosResponse?.data?.data?.videos || [];
         const materials = materialsResponse?.data?.data?.materials || [];
-        sendMessage({ content: message, images, videos, materials, clearInput: true });
+        sendMessage({
+          content: message,
+          images,
+          videos,
+          materials,
+          clearInput: true,
+        });
 
         setSelectedImages([]);
         setSelectedVideos([]);
@@ -509,18 +577,30 @@ function RoomChat() {
     );
   };
 
-  const handleMessageKeyDown = (
-    event: KeyboardEvent<HTMLTextAreaElement>
-  ) => {
+  const handleMessageKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSendMessage();
     }
   };
 
+  const isSomeoneTyping = typingUsers.size > 0;
+
   return (
     <Card className="p-6">
-      <ChatHeader friend={friend} />
+      <div className="flex items-center gap-3 mb-4">
+        <Avatar
+          src={group.avatar}
+          icon={!group.avatar ? <TeamOutlined /> : undefined}
+        />
+        <div>
+          <h2 className="text-xl font-bold">{group.title}</h2>
+          <p className="text-gray-500 text-sm">
+            {group.users.length} members in the group chat
+          </p>
+        </div>
+      </div>
+
       <MessageList
         messages={messages}
         userId={userId}
@@ -536,21 +616,17 @@ function RoomChat() {
           justify="center"
           style={{ height: "100%", opacity: 0.7 }}
         >
-          <Avatar
-            size={64}
-            icon={<UserOutlined />}
-            className="mb-4 bg-blue-500"
-          />
+          <Avatar size={64} icon={<TeamOutlined />} className="mb-4 bg-blue-500" />
           <h3 className="text-xl font-semibold text-gray-700">
-            Say hello to start the chat
+            Welcome to the group chat
           </h3>
           <p className="text-gray-500 mb-6 text-center max-w-md">
-            Messages will appear here in real-time.
+            Start the conversation with your teammates.
           </p>
         </Flex>
       )}
 
-      <TypingIndicator isVisible={isFriendTyping} />
+      <TypingIndicator isVisible={isSomeoneTyping} />
       <ImagePreviewList
         imagePreviews={imagePreviews}
         onRemove={handleRemovePreview}
@@ -581,4 +657,4 @@ function RoomChat() {
   );
 }
 
-export default RoomChat;
+export default GroupProfileChat;
