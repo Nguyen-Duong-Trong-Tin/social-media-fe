@@ -1,8 +1,9 @@
 import type { ReactNode, RefObject } from "react";
-import { Avatar, Flex, Popover } from "antd";
+import { Avatar, Dropdown, Flex, Modal, Popover } from "antd";
 import { Bubble } from "@ant-design/x";
 import {
   EyeOutlined,
+  MoreOutlined,
   PushpinFilled,
   PushpinOutlined,
   UserOutlined,
@@ -22,6 +23,7 @@ type MessageListProps = {
   mentionUsers?: { fullName?: string; avatar?: string; slug?: string }[];
   showSenderName?: boolean;
   onTogglePin?: (messageId: string, pinned: boolean) => void;
+  onDeleteMessage?: (messageId: string) => void;
   registerMessageRef?: (messageId: string, node: HTMLDivElement | null) => void;
 };
 
@@ -149,6 +151,14 @@ function renderMessageContent(
   mentionUsers: MentionUser[],
   onViewProfile: (slug?: string) => void
 ) {
+  if (item.deleted) {
+    return (
+      <div className="text-sm italic text-slate-400">
+        This message was deleted.
+      </div>
+    );
+  }
+
   const hasImages = (item.images?.length || 0) > 0;
   const hasVideos = (item.videos?.length || 0) > 0;
   const hasMaterials = (item.materials?.length || 0) > 0;
@@ -248,6 +258,7 @@ function MessageList({
   mentionUsers = [],
   showSenderName = false,
   onTogglePin,
+  onDeleteMessage,
   registerMessageRef,
 }: MessageListProps) {
   const navigate = useNavigate();
@@ -272,7 +283,41 @@ function MessageList({
           item.userId === userId ? "You" : sender?.fullName || "Unknown";
         const showName = Boolean(userById) && showSenderName;
         const isPinned = Boolean(item.pinned);
-        const canTogglePin = Boolean(onTogglePin && item._id);
+        const canTogglePin = Boolean(onTogglePin && item._id && !item.deleted);
+        const canDeleteMessage = Boolean(
+          onDeleteMessage && item._id && item.userId === userId && !item.deleted
+        );
+        const actionItems = [
+          canTogglePin
+            ? {
+                key: "toggle-pin",
+                label: isPinned ? "Unpin" : "Pin",
+              }
+            : null,
+          canDeleteMessage
+            ? {
+                key: "delete",
+                label: "Delete",
+              }
+            : null,
+        ].filter(Boolean) as { key: string; label: string }[];
+
+        const confirmDelete = () => {
+          if (!item._id) return;
+          Modal.confirm({
+            title: "Delete message",
+            content: "Are you sure you want to delete this message?",
+            okText: "Delete",
+            okButtonProps: { danger: true },
+            cancelText: "Cancel",
+            onOk: () => {
+              if (isPinned) {
+                onTogglePin?.(item._id as string, false);
+              }
+              onDeleteMessage?.(item._id as string);
+            },
+          });
+        };
         const bubbleContent = showName ? (
           <div className="flex flex-col gap-1">
             <div className="text-xs text-gray-500 text-left">
@@ -317,15 +362,31 @@ function MessageList({
                     />
                   }
                 />
-                {canTogglePin && (
-                  <button
-                    type="button"
-                    className="mt-2 text-gray-400 hover:text-amber-500 transition"
-                    onClick={() => item._id && onTogglePin?.(item._id, !isPinned)}
-                    aria-label={isPinned ? "Unpin message" : "Pin message"}
+                {actionItems.length > 0 && (
+                  <Dropdown
+                    placement="bottomRight"
+                    menu={{
+                      items: actionItems,
+                      onClick: ({ key }) => {
+                        if (!item._id) return;
+                        if (key === "toggle-pin") {
+                          onTogglePin?.(item._id, !isPinned);
+                          return;
+                        }
+                        if (key === "delete") {
+                          confirmDelete();
+                        }
+                      },
+                    }}
                   >
-                    {isPinned ? <PushpinFilled /> : <PushpinOutlined />}
-                  </button>
+                    <button
+                      type="button"
+                      className="mt-2 text-gray-400 hover:text-slate-600 transition"
+                      aria-label="Message actions"
+                    >
+                      <MoreOutlined />
+                    </button>
+                  </Dropdown>
                 )}
               </div>
             </div>

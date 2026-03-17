@@ -9,6 +9,7 @@ interface ChatMessage {
   pinnedBy?: string;
   pinnedAt?: string | null;
   createdAt?: string;
+  deleted?: boolean;
   status?: "sending";
 }
 

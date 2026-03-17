@@ -27,6 +27,7 @@ import type IMessage from "@/interfaces/message.interface";
 import type IUser from "@/interfaces/user.interface";
 import type {
   ServerResponseMessageToRoomChatDto,
+  ServerResponseDeleteMessageDto,
   ServerResponsePinMessageDto,
   ServerResponseTypingToRoomChatDto,
 } from "@/dtos/dtos/message.dto";
@@ -185,6 +186,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
             pinnedBy: item.pinnedBy,
             pinnedAt: item.pinnedAt || null,
             createdAt: item.createdAt,
+            deleted: item.deleted,
           }))
         );
       } catch {
@@ -195,7 +197,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
     fetchMessages();
   }, [accessToken, roomChatId]);
 
-  const pinnedMessages = messages.filter((item) => item.pinned);
+  const pinnedMessages = messages.filter((item) => item.pinned && !item.deleted);
   const hasPinned = pinnedMessages.length > 0;
 
   const describePinnedMessage = (item: ChatMessage) => {
@@ -295,6 +297,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
               pinnedBy: data.pinnedBy,
               pinnedAt: data.pinnedAt,
               createdAt: data.createdAt,
+              deleted: data.deleted,
             };
             return next;
           }
@@ -313,6 +316,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
             pinnedBy: data.pinnedBy,
             pinnedAt: data.pinnedAt,
             createdAt: data.createdAt,
+            deleted: data.deleted,
           },
         ];
       });
@@ -324,6 +328,34 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
       socket.off(SocketEvent.SERVER_RESPONSE_MESSAGE_TO_ROOM_CHAT, handler);
     };
   }, [roomChatId, userId]);
+
+  useEffect(() => {
+    const handler = (data: ServerResponseDeleteMessageDto) => {
+      if (!roomChatId || data.roomChatId !== roomChatId) {
+        return;
+      }
+
+      setMessages((prev) =>
+        prev.map((item) =>
+          item._id === data.messageId
+            ? {
+                ...item,
+                deleted: data.deleted,
+                pinned: false,
+                pinnedBy: "",
+                pinnedAt: null,
+              }
+            : item
+        )
+      );
+    };
+
+    socket.on(SocketEvent.SERVER_RESPONSE_DELETE_MESSAGE, handler);
+
+    return () => {
+      socket.off(SocketEvent.SERVER_RESPONSE_DELETE_MESSAGE, handler);
+    };
+  }, [roomChatId]);
 
   useEffect(() => {
     const handler = (data: ServerResponsePinMessageDto) => {
@@ -446,6 +478,18 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
       userId,
       messageId,
       pinned,
+    });
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    if (!roomChatId || !userId) {
+      return;
+    }
+
+    socket.emit(SocketEvent.CLIENT_DELETE_MESSAGE, {
+      roomChatId,
+      userId,
+      messageId,
     });
   };
 
@@ -755,6 +799,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
         mentionUsers={Object.values(userById)}
         showSenderName
         onTogglePin={handleTogglePin}
+        onDeleteMessage={handleDeleteMessage}
         registerMessageRef={registerMessageRef}
       />
 

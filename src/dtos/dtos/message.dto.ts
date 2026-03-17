@@ -16,6 +16,7 @@ export interface ServerResponseMessageToRoomChatDto {
   pinnedBy?: string;
   pinnedAt?: string | null;
   createdAt?: string;
+  deleted?: boolean;
 };
 
 export interface ServerResponsePinMessageDto {
@@ -25,6 +26,13 @@ export interface ServerResponsePinMessageDto {
   pinned: boolean;
   pinnedBy?: string;
   pinnedAt?: string | null;
+};
+
+export interface ServerResponseDeleteMessageDto {
+  userId: string;
+  roomChatId: string;
+  messageId: string;
+  deleted: boolean;
 };
 
 export interface ServerResponseTypingToRoomChatDto {

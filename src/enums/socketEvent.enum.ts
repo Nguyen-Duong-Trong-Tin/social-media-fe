@@ -8,6 +8,9 @@ enum SocketEvent {
   CLIENT_TOGGLE_PIN_MESSAGE = "client.toggle.pin.message",
   SERVER_RESPONSE_PIN_MESSAGE = "server.response.pin.message",
 
+  CLIENT_DELETE_MESSAGE = "client.delete.message",
+  SERVER_RESPONSE_DELETE_MESSAGE = "server.response.delete.message",
+
   CLIENT_TYPING_TO_ROOM_CHAT = "client.typing.to.room.chat",
   SERVER_RESPONSE_TYPING_TO_ROOM_CHAT = "server.response.typing.to.room.chat",
 
