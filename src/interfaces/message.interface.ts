@@ -1,11 +1,16 @@
 interface IMessage {
-  content: string;
-  images: string[];
-  videos: string[];
-  materials: string[];
-  userId: string;
+  _id?: string;
+  content?: string;
+  images?: string[];
+  videos?: string[];
+  materials?: string[];
+  userId?: string;
   roomChatId: string;
-  deleted: boolean;
+  pinned?: boolean;
+  pinnedBy?: string;
+  pinnedAt?: string | null;
+  createdAt?: string;
+  deleted?: boolean;
 }
 
 export default IMessage;

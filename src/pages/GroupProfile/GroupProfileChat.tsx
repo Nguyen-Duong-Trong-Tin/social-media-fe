@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Avatar, Flex } from "antd";
-import { TeamOutlined } from "@ant-design/icons";
+import {
+  CaretDownOutlined,
+  CaretRightOutlined,
+  PushpinFilled,
+  TeamOutlined,
+} from "@ant-design/icons";
 import { toast } from "react-toastify";
 
 import { Card } from "@/components/ui/card";
@@ -22,6 +27,7 @@ import type IMessage from "@/interfaces/message.interface";
 import type IUser from "@/interfaces/user.interface";
 import type {
   ServerResponseMessageToRoomChatDto,
+  ServerResponsePinMessageDto,
   ServerResponseTypingToRoomChatDto,
 } from "@/dtos/dtos/message.dto";
 import type ChatMessage from "@/interfaces/chatMessage.interface";
@@ -46,6 +52,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
   const typingClearTimeoutsRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const imagePreviewsRef = useRef<string[]>([]);
   const videoPreviewsRef = useRef<string[]>([]);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [roomChatId, setRoomChatId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -62,6 +69,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
   const [materialPreviews, setMaterialPreviews] = useState<string[]>([]);
+  const [isPinnedOpen, setIsPinnedOpen] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -157,11 +165,16 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
         setMessages(
           responseMessages.data.data.messages.items.map((item: IMessage) => ({
-            content: item.content,
+            _id: item._id,
+            content: item.content || "",
             images: item.images,
             videos: item.videos,
             materials: item.materials,
-            userId: item.userId,
+            userId: item.userId || "",
+            pinned: item.pinned,
+            pinnedBy: item.pinnedBy,
+            pinnedAt: item.pinnedAt || null,
+            createdAt: item.createdAt,
           }))
         );
       } catch {
@@ -171,6 +184,38 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
     fetchMessages();
   }, [accessToken, roomChatId]);
+
+  const pinnedMessages = messages.filter((item) => item.pinned);
+  const hasPinned = pinnedMessages.length > 0;
+
+  const describePinnedMessage = (item: ChatMessage) => {
+    const trimmed = item.content?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+
+    const imageCount = item.images?.length || 0;
+    const videoCount = item.videos?.length || 0;
+    const materialCount = item.materials?.length || 0;
+    const parts: string[] = [];
+
+    if (imageCount) parts.push(`${imageCount} image${imageCount > 1 ? "s" : ""}`);
+    if (videoCount) parts.push(`${videoCount} video${videoCount > 1 ? "s" : ""}`);
+    if (materialCount) parts.push(`${materialCount} file${materialCount > 1 ? "s" : ""}`);
+
+    return parts.length ? `Attachment: ${parts.join(", ")}` : "Pinned message";
+  };
+
+  const registerMessageRef = (messageId: string, node: HTMLDivElement | null) => {
+    messageRefs.current[messageId] = node;
+  };
+
+  const handleJumpToMessage = (messageId: string) => {
+    const target = messageRefs.current[messageId];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
 
   useEffect(() => {
     const fetchMissingUsers = async () => {
@@ -230,11 +275,15 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
           if (index !== -1) {
             const next = [...prev];
             next[index] = {
+              _id: data._id,
               content: data.content,
               images: data.images,
               videos: data.videos,
               materials: data.materials,
               userId: data.userId,
+              pinned: data.pinned,
+              pinnedBy: data.pinnedBy,
+              pinnedAt: data.pinnedAt,
               createdAt: data.createdAt,
             };
             return next;
@@ -244,11 +293,15 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
         return [
           ...prev,
           {
+            _id: data._id,
             content: data.content,
             images: data.images,
             videos: data.videos,
             materials: data.materials,
             userId: data.userId,
+            pinned: data.pinned,
+            pinnedBy: data.pinnedBy,
+            pinnedAt: data.pinnedAt,
             createdAt: data.createdAt,
           },
         ];
@@ -261,6 +314,33 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
       socket.off(SocketEvent.SERVER_RESPONSE_MESSAGE_TO_ROOM_CHAT, handler);
     };
   }, [roomChatId, userId]);
+
+  useEffect(() => {
+    const handler = (data: ServerResponsePinMessageDto) => {
+      if (!roomChatId || data.roomChatId !== roomChatId) {
+        return;
+      }
+
+      setMessages((prev) =>
+        prev.map((item) =>
+          item._id === data.messageId
+            ? {
+                ...item,
+                pinned: data.pinned,
+                pinnedBy: data.pinnedBy,
+                pinnedAt: data.pinnedAt,
+              }
+            : item
+        )
+      );
+    };
+
+    socket.on(SocketEvent.SERVER_RESPONSE_PIN_MESSAGE, handler);
+
+    return () => {
+      socket.off(SocketEvent.SERVER_RESPONSE_PIN_MESSAGE, handler);
+    };
+  }, [roomChatId]);
 
   useEffect(() => {
     imagePreviewsRef.current = imagePreviews;
@@ -343,6 +423,19 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
       roomChatId,
       userId,
       isTyping,
+    });
+  };
+
+  const handleTogglePin = (messageId: string, pinned: boolean) => {
+    if (!roomChatId || !userId) {
+      return;
+    }
+
+    socket.emit(SocketEvent.CLIENT_TOGGLE_PIN_MESSAGE, {
+      roomChatId,
+      userId,
+      messageId,
+      pinned,
     });
   };
 
@@ -601,12 +694,57 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
         </div>
       </div>
 
+      {hasPinned && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50/90 to-amber-100/60 p-3">
+          <button
+            type="button"
+            onClick={() => setIsPinnedOpen((prev) => !prev)}
+            className="w-full flex items-center justify-between gap-3"
+            aria-expanded={isPinnedOpen}
+            aria-controls="pinned-messages-panel"
+          >
+            <div className="flex items-center gap-2 text-amber-800 text-sm font-semibold">
+              <PushpinFilled />
+              <span>Pinned messages</span>
+              <span className="text-amber-700/80 font-medium">
+                ({pinnedMessages.length})
+              </span>
+            </div>
+            <span className="text-amber-700">
+              {isPinnedOpen ? <CaretDownOutlined /> : <CaretRightOutlined />}
+            </span>
+          </button>
+
+          {isPinnedOpen && (
+            <div
+              id="pinned-messages-panel"
+              className="mt-3 max-h-56 overflow-y-auto rounded-lg bg-white/80 p-2"
+            >
+              <div className="flex flex-col gap-2 text-sm text-gray-700">
+                {pinnedMessages.map((item, index) => (
+                  <button
+                    key={item._id || `${item.userId}-${index}`}
+                    type="button"
+                    className="text-left rounded-md px-2 py-1 hover:bg-amber-100/60 hover:text-amber-900 transition"
+                    onClick={() => item._id && handleJumpToMessage(item._id)}
+                  >
+                    {describePinnedMessage(item)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <MessageList
         messages={messages}
         userId={userId}
         messagesEndRef={messagesEndRef}
         userById={userById}
         showSenderName
+        onTogglePin={handleTogglePin}
+        registerMessageRef={registerMessageRef}
       />
 
       {!messages.length && (

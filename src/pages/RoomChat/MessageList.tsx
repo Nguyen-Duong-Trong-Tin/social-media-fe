@@ -1,7 +1,12 @@
 import type { RefObject } from "react";
 import { Avatar, Flex } from "antd";
 import { Bubble } from "@ant-design/x";
-import { EyeOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  PushpinFilled,
+  PushpinOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 
 import type ChatMessage from "@/interfaces/chatMessage.interface";
 
@@ -11,6 +16,8 @@ type MessageListProps = {
   messagesEndRef: RefObject<HTMLDivElement | null>;
   userById?: Record<string, { fullName?: string; avatar?: string }>;
   showSenderName?: boolean;
+  onTogglePin?: (messageId: string, pinned: boolean) => void;
+  registerMessageRef?: (messageId: string, node: HTMLDivElement | null) => void;
 };
 
 function renderMessageContent(item: ChatMessage) {
@@ -109,6 +116,8 @@ function MessageList({
   messagesEndRef,
   userById,
   showSenderName = false,
+  onTogglePin,
+  registerMessageRef,
 }: MessageListProps) {
   return (
     <Flex
@@ -122,30 +131,63 @@ function MessageList({
         const displayName =
           item.userId === userId ? "You" : sender?.fullName || "Unknown";
         const showName = Boolean(userById) && showSenderName;
+        const isPinned = Boolean(item.pinned);
+        const canTogglePin = Boolean(onTogglePin && item._id);
         const bubbleContent = showName ? (
           <div className="flex flex-col gap-1">
             <div className="text-xs text-gray-500 text-left">
               {displayName}
             </div>
+            {isPinned && (
+              <div className="flex items-center gap-1 text-[11px] text-amber-600">
+                <PushpinFilled className="text-xs" />
+                <span>Pinned</span>
+              </div>
+            )}
             {renderMessageContent(item)}
           </div>
         ) : (
           renderMessageContent(item)
         );
 
+        const isSender = item.userId === userId;
+
         return (
           <Flex key={`${item.userId}-${index}`} gap="small" wrap>
-            <div style={{ width: "100%" }}>
-              <Bubble
-                content={bubbleContent}
-                placement={item.userId === userId ? "end" : "start"}
-                avatar={
-                  <Avatar
-                    src={sender?.avatar}
-                    icon={!sender?.avatar ? <UserOutlined /> : undefined}
-                  />
+            <div
+              style={{ width: "100%" }}
+              ref={(node) => {
+                if (item._id && registerMessageRef) {
+                  registerMessageRef(item._id, node);
                 }
-              />
+              }}
+            >
+              <div
+                className={`flex items-start gap-2 ${
+                  isSender ? "justify-end" : "justify-start"
+                }`}
+              >
+                <Bubble
+                  content={bubbleContent}
+                  placement={isSender ? "end" : "start"}
+                  avatar={
+                    <Avatar
+                      src={sender?.avatar}
+                      icon={!sender?.avatar ? <UserOutlined /> : undefined}
+                    />
+                  }
+                />
+                {canTogglePin && (
+                  <button
+                    type="button"
+                    className="mt-2 text-gray-400 hover:text-amber-500 transition"
+                    onClick={() => item._id && onTogglePin?.(item._id, !isPinned)}
+                    aria-label={isPinned ? "Unpin message" : "Pin message"}
+                  >
+                    {isPinned ? <PushpinFilled /> : <PushpinOutlined />}
+                  </button>
+                )}
+              </div>
             </div>
           </Flex>
         );
