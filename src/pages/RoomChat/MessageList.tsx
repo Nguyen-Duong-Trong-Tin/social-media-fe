@@ -5,7 +5,6 @@ import {
   EyeOutlined,
   MoreOutlined,
   PushpinFilled,
-  PushpinOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";

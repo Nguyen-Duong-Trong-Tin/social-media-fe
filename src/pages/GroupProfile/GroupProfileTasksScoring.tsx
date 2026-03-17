@@ -17,10 +17,8 @@ const { Search } = Input;
 
 function GroupProfileTasksScoring({
   taskGroup,
-  setReload,
 }: {
   taskGroup: ITaskGroup;
-  setReload: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const accessToken = getCookie("accessToken");
 

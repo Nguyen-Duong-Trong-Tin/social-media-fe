@@ -12,6 +12,7 @@ import {
 } from "antd";
 import { toast } from "react-toastify";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import type { Dayjs } from "dayjs";
 
 import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
@@ -21,7 +22,7 @@ type FieldType = {
   title: string;
   images: UploadFile[];
   videos: UploadFile[];
-  deadline: Date;
+  deadline: Dayjs;
 };
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 const v1 = import.meta.env.VITE_BACKEND_V1;
@@ -122,7 +123,10 @@ function GroupProfileTasksButtonCreate({
       fd.append("status", "active");
       fd.append("userId", userId);
       fd.append("groupId", group._id);
-      fd.append("deadline", values.deadline.format("YYYY-MM-DD HH:mm:ss"));
+      fd.append(
+        "deadline",
+        values.deadline?.format("YYYY-MM-DD HH:mm:ss") ?? ""
+      );
 
       const processFiles = (
         files: (UploadFile | undefined)[] | undefined

@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Card, Image, Input, Modal, Select, Table, Tag } from "antd";
+import {
+  Avatar,
+  Card,
+  Image,
+  Input,
+  Modal,
+  Select,
+  Table,
+  Tag,
+  type TableColumnsType,
+} from "antd";
 
 import { Button } from "@/components/ui/button";
 import type { IUser } from "@/interfaces/user.interface";
@@ -23,19 +33,14 @@ function GroupProfileMembers({
   const navigate = useNavigate();
   const userId = getCookie("userId");
 
-  const columns = [
+  type GroupUserRecord = IUser & { groupRole: string; groupUserId: string };
+
+  const columns: TableColumnsType<GroupUserRecord> = [
     {
       title: "Full name",
       dataIndex: "fullName",
       key: "fullName",
-      render: (
-        _: unknown,
-        {
-          avatar,
-          fullName,
-          slug,
-        }: { avatar: string; fullName: string; slug: string }
-      ) => (
+      render: (_: unknown, { avatar, fullName, slug }: GroupUserRecord) => (
         <>
           <div
             className="flex items-center cursor-pointer w-fit"
@@ -63,10 +68,7 @@ function GroupProfileMembers({
       title: "Role",
       dataIndex: "groupRole",
       key: "groupRole",
-      render: (
-        _: unknown,
-        { groupRole, groupUserId }: { groupRole: string; groupUserId: string }
-      ) => {
+      render: (_: unknown, { groupRole, groupUserId }: GroupUserRecord) => {
         if (
           groupUserId !== userId &&
           groupRole !== "superAdmin" &&
@@ -137,7 +139,7 @@ function GroupProfileMembers({
 
   const [isModalInviteMemberOpen, setIsModalInviteMemberOpen] = useState(false);
   const [searchGroupUsersByName, setSearchGroupUsersByName] = useState("");
-  const [users, setUsers] = useState<(IUser & { groupRole: string })[]>([]);
+  const [users, setUsers] = useState<GroupUserRecord[]>([]);
   const [searchUsersCanInvite, setSearchUsersCanInvite] = useState("");
   const [usersCanInviteTotal, setUsersCanInviteTotal] = useState(0);
   const [usersCanInviteLimit, setUsersCanInviteLimit] = useState(20);
