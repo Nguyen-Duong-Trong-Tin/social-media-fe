@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import { updateDescriptionGroup } from "@/services/group";
 
 function GroupProfileDescription({
@@ -113,3 +113,4 @@ function GroupProfileDescription({
 }
 
 export default GroupProfileDescription;
+

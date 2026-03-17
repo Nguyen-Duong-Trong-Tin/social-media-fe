@@ -40,12 +40,12 @@ import { findByIdGroup } from "@/services/group";
 import BoxTinyMCE from "@/components/boxTinyMCE";
 import { IMAGE_NOT_FOUND_SRC } from "@/constants";
 import ButtonGoBack from "@/components/ButtonGoBack";
-import type IUser from "@/interfaces/user.interface";
-import type IGroup from "@/interfaces/group.interface";
+import type { IUser } from "@/interfaces/user.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import { findTaskGroupById } from "@/services/taskGroup";
 import VideoWithPreview from "@/components/VideoWithPreview";
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
-import type ITaskGroupSubmission from "@/interfaces/taskGroupSubmission.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
+import type { ITaskGroupSubmission } from "@/interfaces/taskGroupSubmission.interface";
 
 const { Title, Text } = Typography;
 
@@ -646,3 +646,4 @@ function GroupProfileTasksScoringDetail() {
 }
 
 export default GroupProfileTasksScoringDetail;
+

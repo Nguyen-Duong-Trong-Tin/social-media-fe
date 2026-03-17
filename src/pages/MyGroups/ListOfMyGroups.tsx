@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { findGroups } from "@/services/group";
 import { getCookie } from "@/helpers/cookies";
 import { Button } from "@/components/ui/button";
-import type IGroup from "@/interfaces/group.interface";
-import type IGroupTopic from "@/interfaces/groupTopic.interface";
+import type { IGroup } from "@/interfaces/group.interface";
+import type { IGroupTopic } from "@/interfaces/groupTopic.interface";
 import { findByIdGroupTopic } from "@/services/groupTopic";
 
 const { Search } = Input;
@@ -151,3 +151,4 @@ function ListOfMyGroups() {
 }
 
 export default ListOfMyGroups;
+

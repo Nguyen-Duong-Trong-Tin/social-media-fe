@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { getCookie } from "@/helpers/cookies";
 import { leaveGroup } from "@/services/group";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 
 function GroupProfileSettingsLeaveGroup({
   accessToken,
@@ -96,3 +96,4 @@ function GroupProfileSettingsLeaveGroup({
 }
 
 export default GroupProfileSettingsLeaveGroup;
+

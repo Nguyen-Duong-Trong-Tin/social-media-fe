@@ -2,7 +2,7 @@ import { Empty } from "antd";
 import { Link } from "react-router-dom";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 interface FriendsSectionProps {
   user?: IUser;
@@ -54,3 +54,4 @@ function FriendsSection({ user, friends, loading }: FriendsSectionProps) {
 }
 
 export default FriendsSection;
+

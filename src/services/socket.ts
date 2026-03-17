@@ -6,3 +6,4 @@ export const socket = io(backendDomain, {
   transports: ["websocket"],
   reconnectionDelayMax: 10000,
 });
+

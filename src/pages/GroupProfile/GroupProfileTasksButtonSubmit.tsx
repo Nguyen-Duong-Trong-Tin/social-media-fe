@@ -14,9 +14,9 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
 import { UploadOutlined, EditOutlined } from "@ant-design/icons";
-import type ITaskGroupSubmission from "@/interfaces/taskGroupSubmission.interface";
+import type { ITaskGroupSubmission } from "@/interfaces/taskGroupSubmission.interface";
 
 type FieldType = {
   title: string;
@@ -463,3 +463,4 @@ function GroupProfileTasksButtonSubmit({
 }
 
 export default GroupProfileTasksButtonSubmit;
+

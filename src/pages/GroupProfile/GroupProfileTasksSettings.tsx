@@ -2,7 +2,7 @@ import { SettingsIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { Button, Dropdown, type MenuProps } from "antd";
 
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
 
 import GroupProfileTasksButtonEdit from "./GroupProfileTasksButtonEdit";
 import GroupProfileTasksButtonDelete from "./GroupProfileTasksButtonDelete";
@@ -52,3 +52,4 @@ function GroupProfileTasksSettings({
 }
 
 export default GroupProfileTasksSettings;
+

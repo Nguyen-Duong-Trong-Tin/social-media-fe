@@ -1,8 +1,8 @@
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
 import type { EGroupRole, EGroupStatus } from "@/enums/group.enum";
 
-interface IGroup extends IBase {
+export interface IGroup extends IBase {
   title: string;
   slug: string;
   description: string;
@@ -20,4 +20,4 @@ interface IGroup extends IBase {
   deleted: boolean;
 }
 
-export default IGroup;
+

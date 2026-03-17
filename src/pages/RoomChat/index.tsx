@@ -23,15 +23,15 @@ import {
 import { findRoomChatsByUserId } from "@/services/roomChat";
 import { findUserById, userFindUserByIds } from "@/services/user";
 import SocketEvent from "@/enums/socketEvent.enum";
-import type IMessage from "@/interfaces/message.interface";
-import type IUser from "@/interfaces/user.interface";
+import type { IMessage } from "@/interfaces/message.interface";
+import type { IUser } from "@/interfaces/user.interface";
 import type {
   ServerResponseMessageToRoomChatDto,
   ServerResponseDeleteMessageDto,
   ServerResponsePinMessageDto,
   ServerResponseTypingToRoomChatDto,
 } from "@/dtos/dtos/message.dto";
-import type ChatMessage from "@/interfaces/chatMessage.interface";
+import type { ChatMessage } from "@/interfaces/chatMessage.interface";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import TypingIndicator from "./TypingIndicator";

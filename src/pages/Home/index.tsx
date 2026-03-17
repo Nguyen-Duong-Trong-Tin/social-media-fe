@@ -11,7 +11,7 @@ import { findGroups } from "@/services/group";
 import { Button } from "@/components/ui/button";
 import { FolderOutlined } from "@ant-design/icons";
 import { findGroupTopics } from "@/services/groupTopic";
-import type IGroupTopic from "@/interfaces/groupTopic.interface";
+import type { IGroupTopic } from "@/interfaces/groupTopic.interface";
 
 const { Search } = Input;
 
@@ -147,3 +147,4 @@ function Home() {
 }
 
 export default Home;
+

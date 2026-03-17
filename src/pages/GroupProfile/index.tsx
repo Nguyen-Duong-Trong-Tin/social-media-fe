@@ -7,8 +7,8 @@ import { getCookie } from "@/helpers/cookies";
 import { findBySlugGroup } from "@/services/group";
 import { findArticleGroups } from "@/services/articleGroup";
 import ButtonGoBack from "@/components/ButtonGoBack";
-import type IGroup from "@/interfaces/group.interface";
-import type IArticleGroup from "@/interfaces/articleGroup.interface";
+import type { IGroup } from "@/interfaces/group.interface";
+import type { IArticleGroup } from "@/interfaces/articleGroup.interface";
 
 import GroupProfileHeader from "./GroupProfileHeader";
 import GroupProfileMembers from "./GroupProfileMembers";
@@ -182,3 +182,4 @@ function GroupProfilePage() {
 }
 
 export default GroupProfilePage;
+

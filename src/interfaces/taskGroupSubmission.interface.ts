@@ -1,8 +1,8 @@
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
 import { ETaskGroupSubmissionStatus } from "@/enums/taskGroupSubmission.enum";
 
-interface ITaskGroupSubmission extends IBase {
+export interface ITaskGroupSubmission extends IBase {
   title: string;
   slug: string;
   description?: string;
@@ -22,4 +22,4 @@ interface ITaskGroupSubmission extends IBase {
   deleted: boolean;
 }
 
-export default ITaskGroupSubmission;
+

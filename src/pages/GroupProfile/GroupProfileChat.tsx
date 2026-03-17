@@ -22,16 +22,16 @@ import {
 import { findRoomChatByGroupId } from "@/services/roomChat";
 import { userFindUserByIds } from "@/services/user";
 import SocketEvent from "@/enums/socketEvent.enum";
-import type IGroup from "@/interfaces/group.interface";
-import type IMessage from "@/interfaces/message.interface";
-import type IUser from "@/interfaces/user.interface";
+import type { IGroup } from "@/interfaces/group.interface";
+import type { IMessage } from "@/interfaces/message.interface";
+import type { IUser } from "@/interfaces/user.interface";
 import type {
   ServerResponseMessageToRoomChatDto,
   ServerResponseDeleteMessageDto,
   ServerResponsePinMessageDto,
   ServerResponseTypingToRoomChatDto,
 } from "@/dtos/dtos/message.dto";
-import type ChatMessage from "@/interfaces/chatMessage.interface";
+import type { ChatMessage } from "@/interfaces/chatMessage.interface";
 import ChatInput from "@/pages/RoomChat/ChatInput";
 import ImagePreviewList from "@/pages/RoomChat/ImagePreviewList";
 import MaterialPreviewList from "@/pages/RoomChat/MaterialPreviewList";
@@ -854,3 +854,4 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 }
 
 export default GroupProfileChat;
+

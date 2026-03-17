@@ -13,3 +13,4 @@ export const formatDate = (input: Date | string) => {
 
   return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
 };
+

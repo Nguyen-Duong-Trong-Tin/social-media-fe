@@ -23,3 +23,4 @@ export interface ServerResponseDeleteFriend {
   userId: string;
   userRequestId: string;
 }
+

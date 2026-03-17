@@ -1,4 +1,4 @@
-interface ChatMessage {
+export interface ChatMessage {
   _id?: string;
   content: string;
   images?: string[];
@@ -13,4 +13,4 @@ interface ChatMessage {
   status?: "sending";
 }
 
-export default ChatMessage;
+

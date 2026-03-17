@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 import { formatDate } from "@/helpers/date";
 import { getCookie } from "@/helpers/cookies";
 import { Badge } from "@/components/ui/badge";
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
 import { findTaskGroupSubmissions } from "@/services/taskGroupSubmission";
-import type ITaskGroupSubmission from "@/interfaces/taskGroupSubmission.interface";
+import type { ITaskGroupSubmission } from "@/interfaces/taskGroupSubmission.interface";
 
 const { Search } = Input;
 
@@ -143,3 +143,4 @@ function GroupProfileTasksScoring({
 }
 
 export default GroupProfileTasksScoring;
+

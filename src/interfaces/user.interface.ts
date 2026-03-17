@@ -1,8 +1,8 @@
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
 import { EUserOnline, EUserStatus } from "../enums/user.enum";
 
-interface IUser extends IBase {
+export interface IUser extends IBase {
   fullName: string;
   slug: string;
   email: string;
@@ -22,4 +22,4 @@ interface IUser extends IBase {
   deleted: boolean;
 }
 
-export default IUser;
+

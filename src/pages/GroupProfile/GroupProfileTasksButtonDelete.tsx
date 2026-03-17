@@ -4,7 +4,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 
 import { getCookie } from "@/helpers/cookies";
 import { deleteTaskGroup } from "@/services/taskGroup";
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
 
 function GroupProfileTasksButtonDelete({
   taskGroup,
@@ -74,3 +74,4 @@ function GroupProfileTasksButtonDelete({
 }
 
 export default GroupProfileTasksButtonDelete;
+

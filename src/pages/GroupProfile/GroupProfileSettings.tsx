@@ -1,4 +1,4 @@
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 
 import GroupProfileSettingsInvitation from "./GroupProfileSettingsInvitation";
 import GroupProfileSettingsLeaveGroup from "./GroupProfileSettingsLeaveGroup";
@@ -44,3 +44,4 @@ function GroupProfileSettings({
 }
 
 export default GroupProfileSettings;
+

@@ -7,9 +7,9 @@ import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
 import { Button } from "@/components/ui/button";
 import { socket } from "@/services/socket";
-import type IUser from "@/interfaces/user.interface";
-import type IGroup from "@/interfaces/group.interface";
-import type IArticleUser from "@/interfaces/articleUser.interface";
+import type { IUser } from "@/interfaces/user.interface";
+import type { IGroup } from "@/interfaces/group.interface";
+import type { IArticleUser } from "@/interfaces/articleUser.interface";
 import SocketEvent from "@/enums/socketEvent.enum";
 import type {
   ServerResponseAcceptFriendRequest,
@@ -423,3 +423,4 @@ function Profile() {
 }
 
 export default Profile;
+

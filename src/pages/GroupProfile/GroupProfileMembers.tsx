@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, Card, Image, Input, Modal, Select, Table, Tag } from "antd";
 
 import { Button } from "@/components/ui/button";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 import { findUsers, userFindUserByIds } from "@/services/user";
 import { changeUserRole, inviteMemberGroup } from "@/services/group";
 import { toast } from "react-toastify";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import { getCookie } from "@/helpers/cookies";
 import { EGroupRole } from "@/enums/group.enum";
 
@@ -364,3 +364,4 @@ function GroupProfileMembers({
 }
 
 export default GroupProfileMembers;
+

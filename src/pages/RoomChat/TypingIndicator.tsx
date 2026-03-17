@@ -19,3 +19,4 @@ function TypingIndicator({ isVisible }: TypingIndicatorProps) {
 }
 
 export default TypingIndicator;
+

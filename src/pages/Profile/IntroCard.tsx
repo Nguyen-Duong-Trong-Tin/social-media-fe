@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 interface IntroCardProps {
   user?: IUser;
@@ -57,3 +57,4 @@ function IntroCard({ user, bio, isMyProfile, onEdit }: IntroCardProps) {
 }
 
 export default IntroCard;
+

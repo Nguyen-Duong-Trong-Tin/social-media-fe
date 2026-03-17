@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { findUsers } from "@/services/user";
 import { getCookie } from "@/helpers/cookies";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 interface FriendsSearchProps {
   query: string;
@@ -87,3 +87,4 @@ function FriendsSearch({ query }: FriendsSearchProps) {
 }
 
 export default FriendsSearch;
+

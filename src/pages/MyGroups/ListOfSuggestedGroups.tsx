@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { getCookie } from "@/helpers/cookies";
 import { findByIdGroup, findSuggestGroup } from "@/services/group";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import { useNavigate } from "react-router-dom";
-import type IGroupTopic from "@/interfaces/groupTopic.interface";
+import type { IGroupTopic } from "@/interfaces/groupTopic.interface";
 import { findByIdGroupTopic } from "@/services/groupTopic";
 
 function ListOfSuggestedGroups() {
@@ -113,3 +113,4 @@ function ListOfSuggestedGroups() {
 }
 
 export default ListOfSuggestedGroups;
+

@@ -16,7 +16,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
 import { IMAGE_NOT_FOUND_SRC } from "@/constants";
 
 type FieldType = {
@@ -375,3 +375,4 @@ function GroupProfileTasksButtonEdit({
 }
 
 export default GroupProfileTasksButtonEdit;
+

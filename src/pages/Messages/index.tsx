@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { getCookie } from "@/helpers/cookies";
 import { findRoomChatsByUserId } from "@/services/roomChat";
 import { findUserById } from "@/services/user";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 const formatUpdatedAt = (value?: string) => {
   if (!value) return "";
@@ -173,3 +173,4 @@ function MessagesPage() {
 }
 
 export default MessagesPage;
+

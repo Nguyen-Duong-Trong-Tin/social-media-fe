@@ -18,12 +18,12 @@ import { formatDate } from "@/helpers/date";
 import { getCookie } from "@/helpers/cookies";
 import { IMAGE_NOT_FOUND_SRC } from "@/constants";
 import { userFindUserByIds } from "@/services/user";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 import { findTaskGroups } from "@/services/taskGroup";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import VideoWithPreview from "@/components/VideoWithPreview";
-import type ITaskGroup from "@/interfaces/taskGroup.interface";
-import type ITaskGroupSubmission from "@/interfaces/taskGroupSubmission.interface";
+import type { ITaskGroup } from "@/interfaces/taskGroup.interface";
+import type { ITaskGroupSubmission } from "@/interfaces/taskGroupSubmission.interface";
 import { findTaskGroupSubmissionsByUserIdAndTaskGroupIds } from "@/services/taskGroupSubmission";
 
 import GroupProfileTasksSettings from "./GroupProfileTasksSettings";
@@ -319,3 +319,4 @@ function GroupProfileTasks({ group }: { group: IGroup }) {
 }
 
 export default GroupProfileTasks;
+

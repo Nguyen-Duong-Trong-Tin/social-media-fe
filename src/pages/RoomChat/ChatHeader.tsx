@@ -1,7 +1,7 @@
 import { Avatar } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 type ChatHeaderProps = {
   friend?: IUser;
@@ -25,3 +25,4 @@ function ChatHeader({ friend }: ChatHeaderProps) {
 }
 
 export default ChatHeader;
+

@@ -31,3 +31,4 @@ function MaterialPreviewList({ materials, onRemove }: MaterialPreviewListProps) 
 }
 
 export default MaterialPreviewList;
+

@@ -1,8 +1,8 @@
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
 import type { EArticleUserStatus } from "@/enums/articleUser.enum";
 
-interface IArticleUser extends IBase {
+export interface IArticleUser extends IBase {
   title: string;
   slug: string;
   description: string;
@@ -16,4 +16,4 @@ interface IArticleUser extends IBase {
   deleted: boolean;
 }
 
-export default IArticleUser;
+

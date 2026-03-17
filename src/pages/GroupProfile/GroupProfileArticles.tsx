@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type IArticleGroup from "@/interfaces/articleGroup.interface";
-import type IGroup from "@/interfaces/group.interface";
+import type { IArticleGroup } from "@/interfaces/articleGroup.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import {
   createArticleGroup,
   deleteArticleGroup,
@@ -477,3 +477,4 @@ function GroupProfileArticles({
 }
 
 export default GroupProfileArticles;
+

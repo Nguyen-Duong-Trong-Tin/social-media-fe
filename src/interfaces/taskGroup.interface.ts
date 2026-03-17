@@ -1,8 +1,8 @@
 import { ETaskGroupStatus } from "../enums/taskGroup.enum";
 
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
-interface ITaskGroup extends IBase {
+export interface ITaskGroup extends IBase {
   title: string;
   slug: string;
   description: string;
@@ -18,4 +18,4 @@ interface ITaskGroup extends IBase {
   deleted: boolean;
 }
 
-export default ITaskGroup;
+

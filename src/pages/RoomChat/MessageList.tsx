@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
-import type ChatMessage from "@/interfaces/chatMessage.interface";
+import type { ChatMessage } from "@/interfaces/chatMessage.interface";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -400,3 +400,4 @@ function MessageList({
 }
 
 export default MessageList;
+

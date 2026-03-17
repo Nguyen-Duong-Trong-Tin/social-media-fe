@@ -1,10 +1,9 @@
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
-interface IGroupTopic extends IBase {
+export interface IGroupTopic extends IBase {
   title: string;
   slug: string;
   description: string;
   deleted: boolean;
 };
 
-export default IGroupTopic;

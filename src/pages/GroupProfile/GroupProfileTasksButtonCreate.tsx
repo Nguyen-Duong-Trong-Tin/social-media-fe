@@ -15,7 +15,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 
 type FieldType = {
   title: string;
@@ -315,3 +315,4 @@ function GroupProfileTasksButtonCreate({
 }
 
 export default GroupProfileTasksButtonCreate;
+

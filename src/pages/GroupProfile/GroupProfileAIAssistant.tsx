@@ -12,8 +12,8 @@ import { findMessages } from "@/services/message";
 import SocketEvent from "@/enums/socketEvent.enum";
 import { findBySlugGroup } from "@/services/group";
 import TypingBubble from "@/components/TypingBubble";
-import type IGroup from "@/interfaces/group.interface";
-import type IMessage from "@/interfaces/message.interface";
+import type { IGroup } from "@/interfaces/group.interface";
+import type { IMessage } from "@/interfaces/message.interface";
 import { findRoomChatByAiAssistantAndUserId } from "@/services/roomChat";
 import type { ServerResponseMessageToAIAssistantDto } from "@/dtos/dtos/message.dto";
 
@@ -203,3 +203,4 @@ function GroupProfileAIAssistant() {
 }
 
 export default GroupProfileAIAssistant;
+

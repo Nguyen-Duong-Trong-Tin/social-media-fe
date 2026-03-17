@@ -13,7 +13,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { toast } from "react-toastify";
 
 import { getCookie } from "@/helpers/cookies";
-import type IGroupTopic from "@/interfaces/groupTopic.interface";
+import type { IGroupTopic } from "@/interfaces/groupTopic.interface";
 
 type FieldType = {
   title: string;
@@ -256,3 +256,4 @@ function ButtonAddGroup({
 }
 
 export default ButtonAddGroup;
+

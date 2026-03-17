@@ -1,4 +1,4 @@
-interface IMessage {
+export interface IMessage {
   _id?: string;
   content?: string;
   images?: string[];
@@ -13,4 +13,4 @@ interface IMessage {
   deleted?: boolean;
 }
 
-export default IMessage;
+

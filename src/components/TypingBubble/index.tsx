@@ -17,3 +17,4 @@ function TypingBubble() {
 }
 
 export default TypingBubble;
+

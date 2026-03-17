@@ -1,8 +1,8 @@
-import type IBase from "./base.interface";
+import type { IBase } from "./base.interface";
 
 import type { EArticleGroupStatus } from "@/enums/articleGroup.enum";
 
-interface IArticleGroup extends IBase {
+export interface IArticleGroup extends IBase {
   title: string;
   slug: string;
   description: string;
@@ -17,4 +17,4 @@ interface IArticleGroup extends IBase {
   deleted: boolean;
 }
 
-export default IArticleGroup;
+

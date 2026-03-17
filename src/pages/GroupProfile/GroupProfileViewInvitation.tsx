@@ -12,7 +12,7 @@ import {
   inviteMemberGroupReject,
 } from "@/services/group";
 import { Separator } from "@/components/ui/separator";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 
 function GroupProfileViewInvitation() {
   const userId = getCookie("userId");
@@ -146,3 +146,4 @@ function GroupProfileViewInvitation() {
 }
 
 export default GroupProfileViewInvitation;
+

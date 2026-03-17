@@ -2,7 +2,7 @@ import { Image } from "antd";
 
 import type { ReactNode } from "react";
 
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 function ProfileHeader({
   user,
@@ -52,3 +52,4 @@ function ProfileHeader({
 }
 
 export default ProfileHeader;
+

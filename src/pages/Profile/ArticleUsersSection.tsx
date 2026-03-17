@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type IArticleUser from "@/interfaces/articleUser.interface";
-import type IUser from "@/interfaces/user.interface";
+import type { IArticleUser } from "@/interfaces/articleUser.interface";
+import type { IUser } from "@/interfaces/user.interface";
 import {
   createArticleUser,
   deleteArticleUser,
@@ -472,3 +472,4 @@ function ArticleUsersSection({
 }
 
 export default ArticleUsersSection;
+

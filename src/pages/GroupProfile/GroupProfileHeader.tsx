@@ -1,6 +1,6 @@
 import { Image } from "antd";
 
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 
 function GroupProfileHeader({ group }: { group?: IGroup }) {
   return (
@@ -42,3 +42,4 @@ function GroupProfileHeader({ group }: { group?: IGroup }) {
 }
 
 export default GroupProfileHeader;
+

@@ -6,3 +6,4 @@ enum NotificationType {
 }
 
 export default NotificationType;
+

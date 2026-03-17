@@ -28,3 +28,4 @@ function StatsCard({ groupsCount, friendsCount }: StatsCardProps) {
 }
 
 export default StatsCard;
+

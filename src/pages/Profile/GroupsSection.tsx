@@ -2,8 +2,8 @@ import { Empty } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type IGroup from "@/interfaces/group.interface";
-import type IUser from "@/interfaces/user.interface";
+import type { IGroup } from "@/interfaces/group.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 interface GroupsSectionProps {
   user?: IUser;
@@ -66,3 +66,4 @@ function GroupsSection({ user, groups, loading }: GroupsSectionProps) {
 }
 
 export default GroupsSection;
+

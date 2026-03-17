@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { findGroups } from "@/services/group";
 import { getCookie } from "@/helpers/cookies";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 
 interface GroupsSearchProps {
   query: string;
@@ -104,3 +104,4 @@ function GroupsSearch({ query }: GroupsSearchProps) {
 }
 
 export default GroupsSearch;
+

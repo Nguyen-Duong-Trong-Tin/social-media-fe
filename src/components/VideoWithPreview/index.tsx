@@ -64,3 +64,4 @@ const VideoWithPreview: React.FC<Props> = ({ src, thumbnail, resetWhenClose = tr
 };
 
 export default VideoWithPreview;
+

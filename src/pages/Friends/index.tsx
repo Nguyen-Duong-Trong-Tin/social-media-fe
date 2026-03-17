@@ -5,7 +5,7 @@ import { socket } from "@/services/socket";
 import { getCookie } from "@/helpers/cookies";
 import { findUserById, findUsers } from "@/services/user";
 import SocketEvent from "@/enums/socketEvent.enum";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 import { useNotifications } from "@/contexts/NotificationContext";
 import type {
   ServerResponseRejectFriendRequest,
@@ -247,3 +247,4 @@ function FriendsPage() {
 }
 
 export default FriendsPage;
+

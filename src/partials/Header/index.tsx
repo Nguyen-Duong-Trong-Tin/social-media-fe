@@ -11,7 +11,7 @@ import {
   markNotificationsRead,
 } from "@/services/notification";
 import { userFindUserByIds } from "@/services/user";
-import type IUser from "@/interfaces/user.interface";
+import type { IUser } from "@/interfaces/user.interface";
 
 import "./Header.css";
 
@@ -300,3 +300,4 @@ function Header() {
 }
 
 export default Header;
+

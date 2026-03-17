@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/card";
 import { findGroups } from "@/services/group";
 import { getCookie } from "@/helpers/cookies";
 import { Button } from "@/components/ui/button";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import { findBySlugGroupTopic } from "@/services/groupTopic";
-import type IGroupTopic from "@/interfaces/groupTopic.interface";
+import type { IGroupTopic } from "@/interfaces/groupTopic.interface";
 import ButtonAddGroup from "./ButtonAddGroup";
 
 const { Search } = Input;
@@ -171,3 +171,4 @@ function GroupsPage() {
 }
 
 export default GroupsPage;
+

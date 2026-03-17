@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import BoxTinyMCE from "@/components/boxTinyMCE";
-import type IGroup from "@/interfaces/group.interface";
+import type { IGroup } from "@/interfaces/group.interface";
 import { updateInvitationGroup } from "@/services/group";
 
 function GroupProfileInvitation({
@@ -92,3 +92,4 @@ function GroupProfileInvitation({
 }
 
 export default GroupProfileInvitation;
+
