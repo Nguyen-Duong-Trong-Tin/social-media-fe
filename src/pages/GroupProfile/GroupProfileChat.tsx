@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Avatar, Flex } from "antd";
 import {
@@ -70,6 +70,16 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
   const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
   const [materialPreviews, setMaterialPreviews] = useState<string[]>([]);
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
+
+  const mentionCandidates = useMemo(() => {
+    return Object.values(userById)
+      .filter((user) => user._id && user._id !== userId)
+      .map((user) => ({
+        id: user._id,
+        fullName: user.fullName,
+        avatar: user.avatar,
+      }));
+  }, [userById, userId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -742,6 +752,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
         userId={userId}
         messagesEndRef={messagesEndRef}
         userById={userById}
+        mentionUsers={Object.values(userById)}
         showSenderName
         onTogglePin={handleTogglePin}
         registerMessageRef={registerMessageRef}
@@ -790,6 +801,8 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
         isUploadingImage={isUploadingImage}
         isUploadingVideo={isUploadingVideo}
         isUploadingMaterial={isUploadingMaterial}
+        mentionCandidates={mentionCandidates}
+        enableMentions
       />
     </Card>
   );

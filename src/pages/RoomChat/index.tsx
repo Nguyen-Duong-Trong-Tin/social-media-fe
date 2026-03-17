@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Avatar, Flex } from "antd";
@@ -20,6 +20,7 @@ import {
   uploadMessageMaterials,
   uploadMessageVideos,
 } from "@/services/message";
+import { findRoomChatsByUserId } from "@/services/roomChat";
 import { findUserById, userFindUserByIds } from "@/services/user";
 import SocketEvent from "@/enums/socketEvent.enum";
 import type IMessage from "@/interfaces/message.interface";
@@ -37,6 +38,16 @@ import ImagePreviewList from "./ImagePreviewList";
 import VideoPreviewList from "./VideoPreviewList";
 import MaterialPreviewList from "./MaterialPreviewList";
 import ChatInput from "./ChatInput";
+
+type RoomChatUser = {
+  userId: string;
+  role: string;
+};
+
+type RoomChatItem = {
+  _id: string;
+  users: RoomChatUser[];
+};
 
 function RoomChat() {
   const { roomChatId } = useParams();
@@ -58,6 +69,7 @@ function RoomChat() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userById, setUserById] = useState<Record<string, IUser>>({});
+  const [roomChatUserIds, setRoomChatUserIds] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [isFriendTyping, setIsFriendTyping] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -221,6 +233,76 @@ function RoomChat() {
 
     fetchUsers();
   }, [accessToken, friend, userId]);
+
+  useEffect(() => {
+    const fetchRoomChatUsers = async () => {
+      if (!accessToken || !userId || !roomChatId) {
+        return;
+      }
+
+      try {
+        const response = await findRoomChatsByUserId({ accessToken, userId });
+        const roomChats: RoomChatItem[] = response.data?.data?.roomChats || [];
+        const room = roomChats.find((item) => item._id === roomChatId);
+        const ids = room?.users
+          ?.map((user) => user.userId)
+          .filter((id): id is string => Boolean(id)) || [];
+        setRoomChatUserIds(ids);
+      } catch {
+        setRoomChatUserIds([]);
+      }
+    };
+
+    fetchRoomChatUsers();
+  }, [accessToken, roomChatId, userId]);
+
+  useEffect(() => {
+    const fetchRoomChatUserProfiles = async () => {
+      if (!accessToken || roomChatUserIds.length === 0) {
+        return;
+      }
+
+      const missingIds = roomChatUserIds.filter(
+        (id) => id && !userById[id]
+      );
+
+      if (!missingIds.length) {
+        return;
+      }
+
+      try {
+        const responseUsers = await userFindUserByIds({
+          accessToken,
+          ids: missingIds,
+        });
+        const users = responseUsers?.data?.data || [];
+        const nextMap: Record<string, IUser> = { ...userById };
+        users.forEach((user: IUser) => {
+          const key = user._id || (user as { id?: string }).id;
+          if (key) {
+            nextMap[key] = user;
+          }
+        });
+        setUserById(nextMap);
+      } catch {
+        // ignore - fallback to unknown
+      }
+    };
+
+    fetchRoomChatUserProfiles();
+  }, [accessToken, roomChatUserIds, userById]);
+
+  const mentionCandidates = useMemo(() => {
+    return roomChatUserIds
+      .filter((id) => id && id !== userId)
+      .map((id) => userById[id])
+      .filter(Boolean)
+      .map((user) => ({
+        id: user._id,
+        fullName: user.fullName,
+        avatar: user.avatar,
+      }));
+  }, [roomChatUserIds, userById, userId]);
 
   useEffect(() => {
     const handler = (data: ServerResponseMessageToRoomChatDto) => {
@@ -661,6 +743,7 @@ function RoomChat() {
         userId={userId}
         messagesEndRef={messagesEndRef}
         userById={userById}
+        mentionUsers={Object.values(userById)}
         showSenderName
         onTogglePin={handleTogglePin}
         registerMessageRef={registerMessageRef}
@@ -713,6 +796,8 @@ function RoomChat() {
         isUploadingImage={isUploadingImage}
         isUploadingVideo={isUploadingVideo}
         isUploadingMaterial={isUploadingMaterial}
+        mentionCandidates={mentionCandidates}
+        enableMentions
       />
     </Card>
   );

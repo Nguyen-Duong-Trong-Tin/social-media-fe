@@ -1,5 +1,5 @@
-import type { RefObject } from "react";
-import { Avatar, Flex } from "antd";
+import type { ReactNode, RefObject } from "react";
+import { Avatar, Flex, Popover } from "antd";
 import { Bubble } from "@ant-design/x";
 import {
   EyeOutlined,
@@ -7,6 +7,7 @@ import {
   PushpinOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 import type ChatMessage from "@/interfaces/chatMessage.interface";
 
@@ -14,19 +15,146 @@ type MessageListProps = {
   messages: ChatMessage[];
   userId?: string;
   messagesEndRef: RefObject<HTMLDivElement | null>;
-  userById?: Record<string, { fullName?: string; avatar?: string }>;
+  userById?: Record<
+    string,
+    { fullName?: string; avatar?: string; slug?: string }
+  >;
+  mentionUsers?: { fullName?: string; avatar?: string; slug?: string }[];
   showSenderName?: boolean;
   onTogglePin?: (messageId: string, pinned: boolean) => void;
   registerMessageRef?: (messageId: string, node: HTMLDivElement | null) => void;
 };
 
-function renderMessageContent(item: ChatMessage) {
+type MentionUser = {
+  fullName?: string;
+  avatar?: string;
+  slug?: string;
+};
+
+function renderWithMentions(
+  content: string,
+  mentionUsers: MentionUser[],
+  onViewProfile: (slug?: string) => void
+): ReactNode {
+  if (!content) {
+    return content;
+  }
+
+  const mentionCandidates = mentionUsers
+    .map((user) => ({
+      name: user.fullName || "",
+      avatar: user.avatar,
+      slug: user.slug,
+    }))
+    .filter((user) => user.name)
+    .sort((a, b) => b.name.length - a.name.length);
+
+  const regexFallback = /@[\w.-]{1,32}/y;
+  const nodes: ReactNode[] = [];
+  let cursor = 0;
+
+  while (cursor < content.length) {
+    const atIndex = content.indexOf("@", cursor);
+    if (atIndex === -1) {
+      nodes.push(content.slice(cursor));
+      break;
+    }
+
+    const charBefore = atIndex > 0 ? content[atIndex - 1] : "";
+    if (atIndex > 0 && /[\w]/.test(charBefore)) {
+      nodes.push(content.slice(cursor, atIndex + 1));
+      cursor = atIndex + 1;
+      continue;
+    }
+
+    if (atIndex > cursor) {
+      nodes.push(content.slice(cursor, atIndex));
+    }
+
+    const lower = content.slice(atIndex + 1).toLowerCase();
+    const matched = mentionCandidates.find((candidate) =>
+      lower.startsWith(candidate.name.toLowerCase())
+    );
+
+    if (matched) {
+      const mentionText = `@${matched.name}`;
+      nodes.push(
+        <Popover
+          key={`${atIndex}-${mentionText}`}
+          trigger="click"
+          content={
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="shrink-0"
+                onClick={() => onViewProfile(matched.slug)}
+              >
+                <Avatar src={matched.avatar}>
+                  {matched.name[0]}
+                </Avatar>
+              </button>
+              <div className="flex flex-col">
+                <div className="font-semibold text-slate-800">
+                  {matched.name}
+                </div>
+                {matched.slug && (
+                  <button
+                    type="button"
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                    onClick={() => onViewProfile(matched.slug)}
+                  >
+                    View profile
+                  </button>
+                )}
+              </div>
+            </div>
+          }
+        >
+          <button
+            type="button"
+            className="rounded bg-amber-100 px-1 text-amber-900"
+          >
+            {mentionText}
+          </button>
+        </Popover>
+      );
+      cursor = atIndex + mentionText.length;
+      continue;
+    }
+
+    regexFallback.lastIndex = atIndex;
+    const fallbackMatch = regexFallback.exec(content);
+    if (fallbackMatch) {
+      nodes.push(
+        <span
+          key={`${atIndex}-${fallbackMatch[0]}`}
+          className="rounded bg-amber-100 px-1 text-amber-900"
+        >
+          {fallbackMatch[0]}
+        </span>
+      );
+      cursor = atIndex + fallbackMatch[0].length;
+      continue;
+    }
+
+    nodes.push(content.slice(atIndex, atIndex + 1));
+    cursor = atIndex + 1;
+  }
+
+  return nodes.length ? nodes : content;
+}
+
+function renderMessageContent(
+  item: ChatMessage,
+  mentionUsers: MentionUser[],
+  onViewProfile: (slug?: string) => void
+) {
   const hasImages = (item.images?.length || 0) > 0;
   const hasVideos = (item.videos?.length || 0) > 0;
   const hasMaterials = (item.materials?.length || 0) > 0;
 
   if (!hasImages && !hasVideos && !hasMaterials) {
-    return item.content;
+    return renderWithMentions(item.content, mentionUsers, onViewProfile);
   }
 
   const getMaterialName = (url: string) => {
@@ -58,7 +186,9 @@ function renderMessageContent(item: ChatMessage) {
 
   return (
     <div className="flex flex-col gap-2">
-      {item.content && <div>{item.content}</div>}
+      {item.content && (
+        <div>{renderWithMentions(item.content, mentionUsers, onViewProfile)}</div>
+      )}
       {hasImages && (
         <div className="grid grid-cols-2 gap-2">
           {item.images?.map((url, index) => (
@@ -115,10 +245,20 @@ function MessageList({
   userId,
   messagesEndRef,
   userById,
+  mentionUsers = [],
   showSenderName = false,
   onTogglePin,
   registerMessageRef,
 }: MessageListProps) {
+  const navigate = useNavigate();
+  const handleViewProfile = (slug?: string) => {
+    if (!slug) {
+      return;
+    }
+
+    navigate(`/profile/${slug}`);
+  };
+
   return (
     <Flex
       vertical
@@ -144,10 +284,10 @@ function MessageList({
                 <span>Pinned</span>
               </div>
             )}
-            {renderMessageContent(item)}
+            {renderMessageContent(item, mentionUsers, handleViewProfile)}
           </div>
         ) : (
-          renderMessageContent(item)
+          renderMessageContent(item, mentionUsers, handleViewProfile)
         );
 
         const isSender = item.userId === userId;

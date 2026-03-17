@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, KeyboardEvent } from "react";
-import { Button, Input, Popover } from "antd";
+import { Avatar, Button, Input, Popover } from "antd";
+import type { TextAreaRef } from "antd/es/input/TextArea";
 import {
   PictureOutlined,
   PaperClipOutlined,
@@ -25,6 +26,8 @@ type ChatInputProps = {
   isUploadingImage: boolean;
   isUploadingVideo: boolean;
   isUploadingMaterial: boolean;
+  mentionCandidates?: { id: string; fullName?: string; avatar?: string }[];
+  enableMentions?: boolean;
 };
 
 function ChatInput({
@@ -40,12 +43,32 @@ function ChatInput({
   isUploadingImage,
   isUploadingVideo,
   isUploadingMaterial,
+  mentionCandidates = [],
+  enableMentions = false,
 }: ChatInputProps) {
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [isMentionOpen, setIsMentionOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
   const emojiPickerRef = useRef<HTMLElement | null>(null);
+  const textAreaRef = useRef<TextAreaRef | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const materialInputRef = useRef<HTMLInputElement | null>(null);
+
+  const normalizedMentionCandidates = useMemo(() => {
+    return mentionCandidates.filter((candidate) => candidate.id);
+  }, [mentionCandidates]);
+
+  const filteredMentions = useMemo(() => {
+    const query = mentionQuery.trim().toLowerCase();
+    if (!query) {
+      return normalizedMentionCandidates;
+    }
+
+    return normalizedMentionCandidates.filter((candidate) =>
+      (candidate.fullName || "").toLowerCase().includes(query)
+    );
+  }, [mentionQuery, normalizedMentionCandidates]);
 
   useEffect(() => {
     const picker = emojiPickerRef.current;
@@ -118,16 +141,124 @@ function ChatInput({
     }
   };
 
+  const updateMentionState = (value: string, cursorPos: number) => {
+    if (!enableMentions) {
+      setIsMentionOpen(false);
+      return;
+    }
+
+    const mentionIndex = value.lastIndexOf("@", Math.max(cursorPos - 1, 0));
+    if (mentionIndex === -1) {
+      setIsMentionOpen(false);
+      return;
+    }
+
+    const charBefore = mentionIndex > 0 ? value[mentionIndex - 1] : "";
+    if (mentionIndex > 0 && /[\w]/.test(charBefore)) {
+      setIsMentionOpen(false);
+      return;
+    }
+
+    const query = value.slice(mentionIndex + 1, cursorPos);
+    if (query.includes(" ") || query.includes("\n")) {
+      setIsMentionOpen(false);
+      return;
+    }
+
+    setMentionQuery(query);
+    setIsMentionOpen(true);
+  };
+
+  const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const nextValue = event.target.value;
+    onMessageChange(nextValue);
+    updateMentionState(nextValue, event.target.selectionStart ?? nextValue.length);
+  };
+
+  const handleTextKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Escape" && isMentionOpen) {
+      setIsMentionOpen(false);
+      return;
+    }
+
+    onMessageKeyDown(event);
+  };
+
+  const handleTextBlur = () => {
+    onMessageBlur();
+    setIsMentionOpen(false);
+  };
+
+  const resolveTextArea = () =>
+    textAreaRef.current?.resizableTextArea?.textArea || null;
+
+  const handleMentionSelect = (fullName?: string) => {
+    if (!fullName) {
+      return;
+    }
+
+    const input = resolveTextArea();
+    const cursorPos = input?.selectionStart ?? message.length;
+    const mentionIndex = message.lastIndexOf("@", Math.max(cursorPos - 1, 0));
+    if (mentionIndex === -1) {
+      return;
+    }
+
+    const before = message.slice(0, mentionIndex);
+    const after = message.slice(cursorPos);
+    const insert = `@${fullName} `;
+    const nextValue = `${before}${insert}${after}`;
+    onMessageChange(nextValue);
+    setIsMentionOpen(false);
+    setMentionQuery("");
+
+    requestAnimationFrame(() => {
+      const nextInput = resolveTextArea();
+      if (nextInput) {
+        const nextCursor = before.length + insert.length;
+        nextInput.focus();
+        nextInput.setSelectionRange(nextCursor, nextCursor);
+      }
+    });
+  };
+
   return (
     <div className="flex items-center gap-2 mt-4">
-      <TextArea
-        value={message}
-        onChange={(event) => onMessageChange(event.target.value)}
-        onBlur={onMessageBlur}
-        onKeyDown={onMessageKeyDown}
-        autoSize={{ minRows: 2, maxRows: 6 }}
-        placeholder="Type your message..."
-      />
+      <div className="relative flex-1">
+        <TextArea
+          ref={textAreaRef}
+          value={message}
+          onChange={handleTextChange}
+          onBlur={handleTextBlur}
+          onKeyDown={handleTextKeyDown}
+          autoSize={{ minRows: 2, maxRows: 6 }}
+          placeholder="Type your message..."
+          className="w-full"
+        />
+        {isMentionOpen && filteredMentions.length > 0 && (
+          <div className="absolute left-0 right-0 z-10 mt-2 max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+            {filteredMentions.map((candidate) => (
+              <button
+                key={candidate.id}
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-100"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => handleMentionSelect(candidate.fullName)}
+              >
+                <Avatar
+                  size={24}
+                  src={candidate.avatar}
+                >
+                  {candidate.fullName?.[0]}
+                </Avatar>
+                <span className="text-sm text-slate-700">
+                  {candidate.fullName || "Unknown"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <input
         ref={imageInputRef}
         type="file"
