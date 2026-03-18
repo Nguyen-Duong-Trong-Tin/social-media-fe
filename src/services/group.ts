@@ -213,3 +213,70 @@ export const leaveGroup = async ({
   return response;
 };
 
+export const requestJoinGroup = async ({
+  accessToken,
+  id,
+  userId,
+}: {
+  accessToken: string;
+  id: string;
+  userId: string;
+}) => {
+  const response = await axios.post(
+    `${v1}/groups/request-join/${userId}/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response;
+};
+
+export const approveJoinRequestGroup = async ({
+  accessToken,
+  id,
+  adminId,
+  userId,
+}: {
+  accessToken: string;
+  id: string;
+  adminId: string;
+  userId: string;
+}) => {
+  const response = await axios.post(
+    `${v1}/groups/request-join/accept/${adminId}/${userId}/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response;
+};
+
+export const rejectJoinRequestGroup = async ({
+  accessToken,
+  id,
+  adminId,
+  userId,
+}: {
+  accessToken: string;
+  id: string;
+  adminId: string;
+  userId: string;
+}) => {
+  const response = await axios.post(
+    `${v1}/groups/request-join/reject/${adminId}/${userId}/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response;
+};
+

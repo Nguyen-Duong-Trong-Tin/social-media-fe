@@ -6,8 +6,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -85,32 +83,71 @@ function GroupProfileDescription({
       </Modal>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Intro</CardTitle>
-          <CardDescription dangerouslySetInnerHTML={{ __html: description }} />
-          <CardAction>
-            {group &&
-              group.users.some(
-                (user) =>
-                  (user.role === "superAdmin" || user.role === "admin") &&
-                  user.userId === userId
-              ) && (
-                <Button variant="outline" onClick={showDescriptionModal}>
-                  Edit
-                </Button>
-              )}
-          </CardAction>
+        <CardHeader className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-xl">About this group</CardTitle>
+            </div>
+            <CardAction>
+              {group &&
+                group.users.some(
+                  (user) =>
+                    (user.role === "superAdmin" || user.role === "admin") &&
+                    user.userId === userId,
+                ) && (
+                  <Button variant="outline" onClick={showDescriptionModal}>
+                    Edit
+                  </Button>
+                )}
+            </CardAction>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p>Card Content</p>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-lg border bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Members
+            </p>
+            <p className="mt-1 text-2xl font-semibold">
+              {group?.users?.length ?? 0}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Active community size
+            </p>
+          </div>
+          <div className="rounded-lg border bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Join requests
+            </p>
+            <p className="mt-1 text-2xl font-semibold">
+              {group?.userRequests?.length ?? 0}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Waiting for approval
+            </p>
+          </div>
+          <div className="rounded-lg border bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Invitations
+            </p>
+            <p className="mt-1 text-2xl font-semibold">
+              {group?.usersInvited?.length ?? 0}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Pending invites sent
+            </p>
+          </div>
+          <div className="rounded-lg border bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Status
+            </p>
+            <p className="mt-1 text-lg font-semibold">
+              {group?.status ?? "Unknown"}
+            </p>
+          </div>
         </CardContent>
-        <CardFooter>
-          <p>Card Footer</p>
-        </CardFooter>
       </Card>
     </>
   );
 }
 
 export default GroupProfileDescription;
-

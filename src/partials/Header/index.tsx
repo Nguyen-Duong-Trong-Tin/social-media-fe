@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { BellOutlined, SearchOutlined } from "@ant-design/icons";
+import { toast } from "react-toastify";
 import { deleteCookie, getCookie } from "@/helpers/cookies";
 import { useNotifications } from "@/contexts/NotificationContext";
 import NotificationType from "@/enums/notification.enum";
@@ -10,6 +11,10 @@ import {
   findNotifications,
   markNotificationsRead,
 } from "@/services/notification";
+import {
+  approveJoinRequestGroup,
+  rejectJoinRequestGroup,
+} from "@/services/group";
 import { userFindUserByIds } from "@/services/user";
 import type { IUser } from "@/interfaces/user.interface";
 
@@ -31,7 +36,13 @@ function Header() {
       type: NotificationType;
       isRead: boolean;
       createdAt: string;
-      data?: { roomChatId?: string; fromUserId?: string };
+      data?: {
+        roomChatId?: string;
+        fromUserId?: string;
+        groupId?: string;
+        groupSlug?: string;
+        requesterId?: string;
+      };
     }[]
   >([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -99,8 +110,20 @@ function Header() {
 
   const handleNotificationClick = (item: {
     type: NotificationType;
-    data?: { roomChatId?: string; fromUserId?: string };
+    data?: {
+      roomChatId?: string;
+      fromUserId?: string;
+      groupId?: string;
+      groupSlug?: string;
+      requesterId?: string;
+    };
   }) => {
+    if (item.type === NotificationType.group_request && item.data?.groupSlug) {
+      setIsNotificationsOpen(false);
+      navigate(`/group-profile/${item.data.groupSlug}`);
+      return;
+    }
+
     if (item.type !== NotificationType.message) {
       return;
     }
@@ -118,6 +141,47 @@ function Header() {
     navigate(`/room-chat/${roomChatId}`, {
       state: sender ? { friend: sender } : undefined,
     });
+  };
+
+  const handleGroupRequestAction = async ({
+    notificationId,
+    action,
+    groupId,
+    requesterId,
+  }: {
+    notificationId: string;
+    action: "approve" | "reject";
+    groupId?: string;
+    requesterId?: string;
+  }) => {
+    if (!accessToken || !userId || !groupId || !requesterId) return;
+
+    try {
+      if (action === "approve") {
+        await approveJoinRequestGroup({
+          accessToken,
+          id: groupId,
+          adminId: userId,
+          userId: requesterId,
+        });
+        toast.success("Request approved.");
+      } else {
+        await rejectJoinRequestGroup({
+          accessToken,
+          id: groupId,
+          adminId: userId,
+          userId: requesterId,
+        });
+        toast.success("Request rejected.");
+      }
+
+      setNotifications((prev) =>
+        prev.filter((notification) => notification._id !== notificationId)
+      );
+      await refreshCounts();
+    } catch {
+      toast.error("Failed to update request.");
+    }
   };
 
   const senderNameById = useMemo(() => {
@@ -144,8 +208,16 @@ function Header() {
       const senderIds = Array.from(
         new Set(
           notifications
-            .filter((item) => item.type === NotificationType.message)
-            .map((item) => item.data?.fromUserId)
+            .filter(
+              (item) =>
+                item.type === NotificationType.message ||
+                item.type === NotificationType.group_request
+            )
+            .map((item) =>
+              item.type === NotificationType.group_request
+                ? item.data?.requesterId
+                : item.data?.fromUserId
+            )
             .filter((id): id is string => Boolean(id))
         )
       ).filter((id) => !senderById[id]);
@@ -276,6 +348,45 @@ function Header() {
                             </span>
                             {` ${item.message}`}
                           </>
+                        ) : item.type === NotificationType.group_request &&
+                          item.data?.requesterId ? (
+                          (() => {
+                            const requester =
+                              senderById[item.data?.requesterId ?? ""];
+                            const requesterName =
+                              requester?.fullName || "Someone";
+                            const requesterSlug = requester?.slug;
+                            const remainder = item.message.startsWith(
+                              requesterName
+                            )
+                              ? item.message.slice(requesterName.length)
+                              : ` requested to join your group.`;
+
+                            return (
+                              <>
+                                <button
+                                  type="button"
+                                  className="header-notifications-sender"
+                                  style={{
+                                    cursor: requesterSlug ? "pointer" : "default",
+                                    textDecoration: requesterSlug ? "underline" : "none",
+                                    background: "none",
+                                    border: "none",
+                                    padding: 0,
+                                  }}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    if (!requesterSlug) return;
+                                    setIsNotificationsOpen(false);
+                                    navigate(`/profile/${requesterSlug}`);
+                                  }}
+                                >
+                                  {requesterName}
+                                </button>
+                                {remainder}
+                              </>
+                            );
+                          })()
                         ) : (
                           item.message
                         )}
@@ -283,6 +394,39 @@ function Header() {
                       <div className="header-notifications-time">
                         {item.time}
                       </div>
+                      {item.type === NotificationType.group_request && (
+                        <div className="mt-2 flex gap-2">
+                          <Button
+                            size="small"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleGroupRequestAction({
+                                notificationId: item._id,
+                                action: "reject",
+                                groupId: item.data?.groupId,
+                                requesterId: item.data?.requesterId,
+                              });
+                            }}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            size="small"
+                            type="primary"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleGroupRequestAction({
+                                notificationId: item._id,
+                                action: "approve",
+                                groupId: item.data?.groupId,
+                                requesterId: item.data?.requesterId,
+                              });
+                            }}
+                          >
+                            Approve
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
               </div>

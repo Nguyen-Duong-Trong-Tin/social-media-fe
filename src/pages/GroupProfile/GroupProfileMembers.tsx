@@ -15,7 +15,12 @@ import {
 import { Button } from "@/components/ui/button";
 import type { IUser } from "@/interfaces/user.interface";
 import { findUsers, userFindUserByIds } from "@/services/user";
-import { changeUserRole, inviteMemberGroup } from "@/services/group";
+import {
+  approveJoinRequestGroup,
+  changeUserRole,
+  inviteMemberGroup,
+  rejectJoinRequestGroup,
+} from "@/services/group";
 import { toast } from "react-toastify";
 import type { IGroup } from "@/interfaces/group.interface";
 import { getCookie } from "@/helpers/cookies";
@@ -26,9 +31,11 @@ const { Search } = Input;
 function GroupProfileMembers({
   accessToken,
   group,
+  onReload,
 }: {
   accessToken: string;
   group: IGroup;
+  onReload: () => Promise<void>;
 }) {
   const navigate = useNavigate();
   const userId = getCookie("userId");
@@ -145,6 +152,8 @@ function GroupProfileMembers({
   const [usersCanInviteLimit, setUsersCanInviteLimit] = useState(20);
   const [usersCanInvite, setUsersCanInvite] = useState<IUser[]>([]);
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<IUser[]>([]);
+  const [pendingRequestsLoading, setPendingRequestsLoading] = useState(false);
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -165,6 +174,32 @@ function GroupProfileMembers({
     };
     fetchApi();
   }, [accessToken, group.users]);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (!group.userRequests || group.userRequests.length === 0) {
+        setPendingRequests([]);
+        return;
+      }
+
+      try {
+        setPendingRequestsLoading(true);
+        const {
+          data: { data },
+        } = await userFindUserByIds({
+          accessToken,
+          ids: group.userRequests,
+        });
+        setPendingRequests(data || []);
+      } catch {
+        setPendingRequests([]);
+      } finally {
+        setPendingRequestsLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [accessToken, group.userRequests]);
 
   useEffect(() => {
     const fetchApi = async () => {
@@ -228,6 +263,38 @@ function GroupProfileMembers({
     setUsersCanInviteLimit(usersCanInviteLimit + 20);
   };
 
+  const handleApproveRequest = async (requestUserId: string) => {
+    if (!userId) return;
+    try {
+      await approveJoinRequestGroup({
+        accessToken,
+        id: group._id,
+        adminId: userId,
+        userId: requestUserId,
+      });
+      toast.success("Request approved.");
+      await onReload();
+    } catch {
+      toast.error("Failed to approve request.");
+    }
+  };
+
+  const handleRejectRequest = async (requestUserId: string) => {
+    if (!userId) return;
+    try {
+      await rejectJoinRequestGroup({
+        accessToken,
+        id: group._id,
+        adminId: userId,
+        userId: requestUserId,
+      });
+      toast.success("Request rejected.");
+      await onReload();
+    } catch {
+      toast.error("Failed to reject request.");
+    }
+  };
+
   const groupUsersFiltered = users.filter((user) =>
     user.fullName.toLowerCase().includes(searchGroupUsersByName.toLowerCase())
   );
@@ -238,6 +305,12 @@ function GroupProfileMembers({
       (user.role === "superAdmin" ||
         user.role === "admin" ||
         user.role === "teacher")
+  );
+
+  const canApproveRequests = group.users.some(
+    (user) =>
+      user.userId === userId &&
+      (user.role === "superAdmin" || user.role === "admin")
   );
 
   return (
@@ -356,6 +429,67 @@ function GroupProfileMembers({
             >
               Invite members
             </Button>
+          </div>
+        )}
+
+        {canApproveRequests && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Pending requests</h3>
+            {pendingRequestsLoading && (
+              <div className="text-sm text-muted-foreground">Loading...</div>
+            )}
+            {!pendingRequestsLoading && pendingRequests.length === 0 && (
+              <div className="text-sm text-muted-foreground">
+                No pending requests.
+              </div>
+            )}
+            {!pendingRequestsLoading && pendingRequests.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingRequests.map((requestUser) => (
+                  <Card
+                    key={requestUser._id}
+                    className="shadow-sm rounded-xl p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={
+                          requestUser.avatar
+                            ? requestUser.avatar
+                            : "https://aic.com.vn/wp-content/uploads/2024/10/avatar-fb-mac-dinh-2.jpg"
+                        }
+                        alt={requestUser.fullName}
+                        width={48}
+                        height={48}
+                        className="rounded-full object-cover"
+                        preview={false}
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {requestUser.fullName}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          {requestUser.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleRejectRequest(requestUser._id)}
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        variant="default"
+                        onClick={() => handleApproveRequest(requestUser._id)}
+                      >
+                        Approve
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

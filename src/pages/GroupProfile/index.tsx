@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Col, Result, Row, Tabs, type TabsProps } from "antd";
+import { Button, Col, Result, Row, Tabs, type TabsProps } from "antd";
 import { toast } from "react-toastify";
 
 import { getCookie } from "@/helpers/cookies";
-import { findBySlugGroup } from "@/services/group";
+import { findBySlugGroup, requestJoinGroup } from "@/services/group";
 import { findArticleGroups } from "@/services/articleGroup";
 import ButtonGoBack from "@/components/ButtonGoBack";
 import type { IGroup } from "@/interfaces/group.interface";
@@ -30,16 +30,17 @@ function GroupProfilePage() {
   const [articleGroups, setArticleGroups] = useState<IArticleGroup[]>([]);
   const [articleGroupsLoading, setArticleGroupsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchApi = async () => {
-      const {
-        data: { data },
-      } = await findBySlugGroup({ accessToken, slug });
+  const fetchGroup = useCallback(async () => {
+    const {
+      data: { data },
+    } = await findBySlugGroup({ accessToken, slug });
 
-      setGroup(data);
-    };
-    fetchApi();
+    setGroup(data);
   }, [accessToken, slug]);
+
+  useEffect(() => {
+    fetchGroup();
+  }, [fetchGroup]);
 
   const onChange = (key: string) => {
     console.log(key);
@@ -102,7 +103,11 @@ function GroupProfilePage() {
       children: (
         <>
           {group && (
-            <GroupProfileMembers accessToken={accessToken} group={group} />
+            <GroupProfileMembers
+              accessToken={accessToken}
+              group={group}
+              onReload={fetchGroup}
+            />
           )}
         </>
       ),
@@ -165,14 +170,47 @@ function GroupProfilePage() {
             </Row>
           ) : (
             <div className="flex justify-center mt-20">
-              <Result
-                status="403"
-                title="This group is private 🔒"
-                subTitle="You cannot view group content because you are not a member."
-                extra={
-                  <ButtonGoBack />
-                }
-              />
+              {group && userId && accessToken && (
+                <Result
+                  status="403"
+                  title="This group is private 🔒"
+                  subTitle="You cannot view group content because you are not a member."
+                  extra={
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <ButtonGoBack />
+                      <Button
+                        type="primary"
+                        disabled={group.userRequests?.includes(userId)}
+                        onClick={async () => {
+                          try {
+                            const response = await requestJoinGroup({
+                              accessToken,
+                              id: group._id,
+                              userId,
+                            });
+                            setGroup(response.data?.data || group);
+                            toast.success("Request sent.");
+                          } catch {
+                            toast.error("Unable to send request.");
+                          }
+                        }}
+                      >
+                        {group.userRequests?.includes(userId)
+                          ? "Request sent"
+                          : "Request to join"}
+                      </Button>
+                    </div>
+                  }
+                />
+              )}
+              {!group && (
+                <Result
+                  status="403"
+                  title="This group is private 🔒"
+                  subTitle="You cannot view group content because you are not a member."
+                  extra={<ButtonGoBack />}
+                />
+              )}
             </div>
           )}
         </div>
