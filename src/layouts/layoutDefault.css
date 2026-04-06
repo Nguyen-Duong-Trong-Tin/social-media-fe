@@ -33,7 +33,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 14px 32px rgba(37, 99, 235, 0.35), 0 0 0 6px rgba(59, 130, 246, 0.16);
-  z-index: 40;
+  z-index: 1200;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   animation: floatingMessagePulse 3.2s ease-in-out infinite;
   backdrop-filter: blur(12px);

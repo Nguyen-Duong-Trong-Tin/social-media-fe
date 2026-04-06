@@ -14,13 +14,40 @@ const { Title, Text } = Typography;
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const backendV1 = import.meta.env.VITE_BACKEND_V1;
 
   useEffect(() => {
     const checkAuth = async () => {
-      const accessToken = getCookie("accessToken");
-      const refreshToken = getCookie("refreshToken");
+      const params = new URLSearchParams(window.location.search);
+      const accessToken = params.get("accessToken");
+      const refreshToken = params.get("refreshToken");
+      const userId = params.get("userId");
+      const userSlug = params.get("userSlug");
+      const error = params.get("error");
 
-      if (accessToken || refreshToken) {
+      if (error) {
+        if (error === "account_exists_local") {
+          toast.error("Email already registered. Please login with email.");
+        } else {
+          toast.error("Google login failed. Please try again.");
+        }
+        window.history.replaceState({}, document.title, "/login");
+        return;
+      }
+
+      if (accessToken && refreshToken && userId && userSlug) {
+        setCookie("userId", userId, 3);
+        setCookie("userSlug", userSlug, 3);
+        setCookie("accessToken", accessToken, 3);
+        setCookie("refreshToken", refreshToken, 90);
+        navigate("/");
+        return;
+      }
+
+      const accessTokenCookie = getCookie("accessToken");
+      const refreshTokenCookie = getCookie("refreshToken");
+
+      if (accessTokenCookie || refreshTokenCookie) {
         navigate("/");
       }
     };
@@ -46,6 +73,10 @@ const Login = () => {
     }
 
     setLoading(false);
+  };
+
+  const onGoogleLogin = () => {
+    window.location.href = `${backendV1}/auth/google`;
   };
 
   return (
@@ -101,6 +132,16 @@ const Login = () => {
             </Form.Item>
           </Form>
 
+          <div className="login-divider">or</div>
+
+          <Button
+            type="default"
+            className="login-btn login-btn-google"
+            onClick={onGoogleLogin}
+          >
+            Continue with Google
+          </Button>
+
           <div className="login-footer">
             <Text>
               Don't have an account?{" "}
@@ -124,4 +165,3 @@ const Login = () => {
 };
 
 export default Login;
-

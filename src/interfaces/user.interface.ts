@@ -12,6 +12,12 @@ export interface IUser extends IBase {
   status: EUserStatus;
   coverPhoto: string;
   bio: string;
+  lastLocation?: {
+    lat: number;
+    lng: number;
+    updatedAt: string;
+  };
+  locationVisibility?: "friends" | "everyone";
   friends: {
     userId: string;
     roomChatId: string;
@@ -21,5 +27,3 @@ export interface IUser extends IBase {
   online: EUserOnline;
   deleted: boolean;
 }
-
-

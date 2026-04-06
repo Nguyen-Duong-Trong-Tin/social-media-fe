@@ -18,6 +18,7 @@ import FriendRequestsList from "@/pages/Friends/FriendRequestsList";
 import FriendAcceptsList from "@/pages/Friends/FriendAcceptsList";
 import FriendsList from "@/pages/Friends/FriendsList";
 import PeopleYouMayKnowList from "@/pages/Friends/PeopleYouMayKnowList";
+import FriendAround from "@/pages/Friends/FriendAround";
 
 function FriendsPage() {
   const userId = getCookie("userId");
@@ -27,9 +28,9 @@ function FriendsPage() {
   const [reload, setReload] = useState(false);
   const [friendRequests, setFriendRequests] = useState<IUser[]>([]);
   const [friendAccepts, setFriendAccepts] = useState<IUser[]>([]);
-  const [friends, setFriends] = useState<
-    { user: IUser; roomChatId: string }[]
-  >([]);
+  const [friends, setFriends] = useState<{ user: IUser; roomChatId: string }[]>(
+    [],
+  );
   const [peopleYouMayKnow, setPeopleYouMayKnow] = useState<IUser[]>([]);
   const [peopleLoading, setPeopleLoading] = useState(false);
 
@@ -242,9 +243,10 @@ function FriendsPage() {
         loading={peopleLoading}
         onSendInvitation={handleSendFriendRequest}
       />
+
+      <FriendAround />
     </>
   );
 }
 
 export default FriendsPage;
-

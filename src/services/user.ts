@@ -36,7 +36,7 @@ export const userFindUserByIds = async ({
     { ids },
     {
       headers: { Authorization: `Bearer ${accessToken}` },
-    }
+    },
   );
   return response;
 };
@@ -110,8 +110,47 @@ export const userUpdateBio = async ({
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    }
+    },
   );
   return response;
 };
 
+export const userUpdateLocation = async ({
+  accessToken,
+  id,
+  lat,
+  lng,
+  visibility,
+}: {
+  accessToken: string;
+  id: string;
+  lat: number;
+  lng: number;
+  visibility: "friends" | "everyone";
+}) => {
+  const response = await axios.patch(
+    `${v1}/users/location/${id}`,
+    { lat, lng, visibility },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+  return response;
+};
+
+export const userFindUsersWithLocation = async ({
+  accessToken,
+  viewerId,
+}: {
+  accessToken: string;
+  viewerId: string;
+}) => {
+  const param = `${v1}/users/locations?viewerId=${viewerId}`;
+
+  const response = await axios.get(param, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return response;
+};

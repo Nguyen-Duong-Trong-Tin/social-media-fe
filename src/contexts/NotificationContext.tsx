@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 
 import { socket } from "@/services/socket";
 import SocketEvent from "@/enums/socketEvent.enum";
@@ -32,7 +33,7 @@ type NotificationContextValue = {
 };
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 const defaultCounts: NotificationCounts = {
@@ -41,23 +42,28 @@ const defaultCounts: NotificationCounts = {
   friendRequests: 0,
 };
 
-export function NotificationProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function NotificationProvider({ children }: { children: ReactNode }) {
   const [counts, setCounts] = useState<NotificationCounts>(defaultCounts);
   const [activeRoomChatId, setActiveRoomChatId] = useState<string | null>(null);
+  const [auth, setAuth] = useState({ accessToken: "", userId: "" });
+  const location = useLocation();
 
-  const accessToken = getCookie("accessToken");
-  const userId = getCookie("userId");
+  useEffect(() => {
+    setAuth({
+      accessToken: getCookie("accessToken"),
+      userId: getCookie("userId"),
+    });
+  }, [location.pathname]);
 
   const refreshCounts = useCallback(async () => {
-    if (!accessToken || !userId) return;
+    if (!auth.accessToken || !auth.userId) {
+      setCounts(defaultCounts);
+      return;
+    }
     try {
       const response = await getUnreadNotificationCounts({
-        accessToken,
-        userId,
+        accessToken: auth.accessToken,
+        userId: auth.userId,
       });
 
       const data = response.data?.data;
@@ -69,15 +75,15 @@ export function NotificationProvider({
     } catch {
       setCounts(defaultCounts);
     }
-  }, [accessToken, userId]);
+  }, [auth.accessToken, auth.userId]);
 
   const markMessagesRead = useCallback(
     async (roomChatId: string) => {
-      if (!accessToken || !userId || !roomChatId) return;
+      if (!auth.accessToken || !auth.userId || !roomChatId) return;
       try {
         await markNotificationsRead({
-          accessToken,
-          userId,
+          accessToken: auth.accessToken,
+          userId: auth.userId,
           type: NotificationType.message,
           roomChatId,
         });
@@ -86,36 +92,36 @@ export function NotificationProvider({
         return;
       }
     },
-    [accessToken, userId, refreshCounts]
+    [auth.accessToken, auth.userId, refreshCounts],
   );
 
   const markFriendRequestsRead = useCallback(async () => {
-    if (!accessToken || !userId) return;
+    if (!auth.accessToken || !auth.userId) return;
     try {
       await markNotificationsRead({
-        accessToken,
-        userId,
+        accessToken: auth.accessToken,
+        userId: auth.userId,
         type: NotificationType.friend_request,
       });
       await refreshCounts();
     } catch {
       return;
     }
-  }, [accessToken, userId, refreshCounts]);
+  }, [auth.accessToken, auth.userId, refreshCounts]);
 
   useEffect(() => {
     refreshCounts();
   }, [refreshCounts]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!auth.userId) return;
 
     const handler = (payload: {
       userId: string;
       type: NotificationType;
       data?: { roomChatId?: string };
     }) => {
-      if (payload.userId !== userId) return;
+      if (payload.userId !== auth.userId) return;
 
       if (
         payload.type === NotificationType.message &&
@@ -146,7 +152,7 @@ export function NotificationProvider({
     return () => {
       socket.off(SocketEvent.SERVER_PUSH_NOTIFICATION, handler);
     };
-  }, [activeRoomChatId, userId]);
+  }, [activeRoomChatId, auth.userId]);
 
   const value = useMemo(
     () => ({
@@ -156,7 +162,7 @@ export function NotificationProvider({
       markMessagesRead,
       markFriendRequestsRead,
     }),
-    [counts, refreshCounts, markFriendRequestsRead, markMessagesRead]
+    [counts, refreshCounts, markFriendRequestsRead, markMessagesRead],
   );
 
   return (
@@ -169,8 +175,9 @@ export function NotificationProvider({
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error("useNotifications must be used within NotificationProvider");
+    throw new Error(
+      "useNotifications must be used within NotificationProvider",
+    );
   }
   return context;
 };
-

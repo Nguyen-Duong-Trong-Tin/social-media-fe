@@ -1,0 +1,230 @@
+.friend-around {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fff7ed, #ffffff 45%, #ecfeff);
+  border-radius: 20px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  position: relative;
+  overflow: hidden;
+  font-family: "Plus Jakarta Sans", "Trebuchet MS", sans-serif;
+}
+
+.friend-around::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.18), transparent 45%);
+  pointer-events: none;
+}
+
+.friend-around-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.friend-around-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.friend-around-status {
+  margin: 6px 0 0;
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.friend-around-visibility {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.friend-around-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+}
+
+.friend-around-toggle {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  gap: 6px;
+}
+
+.friend-around-toggle-btn {
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: transparent;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.friend-around-toggle-btn.is-active {
+  background: #0f172a;
+  color: #f8fafc;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+}
+
+.friend-around-toggle-btn:hover {
+  transform: translateY(-1px);
+}
+
+.friend-around-map {
+  width: 100%;
+  height: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.friend-around-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.friend-around-center {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.friend-around-center:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(15, 23, 42, 0.3);
+}
+
+@media (max-width: 768px) {
+  .friend-around-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .friend-around-visibility {
+    align-items: flex-start;
+  }
+}
+
+.friend-around-map-inner,
+.friend-around-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+.friend-around-avatar-icon {
+  background: transparent;
+  border: none;
+}
+
+.friend-around-avatar-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translateY(-6px);
+}
+
+.friend-around-avatar-name {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.16);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.friend-around-avatar-image {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+}
+
+.friend-around-avatar-marker.is-online .friend-around-avatar-image {
+  box-shadow: 0 10px 22px rgba(16, 185, 129, 0.35);
+}
+
+.friend-around-avatar-marker.is-offline .friend-around-avatar-image {
+  box-shadow: 0 10px 22px rgba(148, 163, 184, 0.35);
+}
+
+.friend-around-avatar-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: #0f172a;
+  color: #f8fafc;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.2);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.friend-around-avatar-marker.is-online .friend-around-avatar-status {
+  background: #10b981;
+}
+
+.friend-around-avatar-marker.is-offline .friend-around-avatar-status {
+  background: #64748b;
+}
+
+.friend-around-avatar-marker:hover .friend-around-avatar-name,
+.friend-around-avatar-marker:hover .friend-around-avatar-status {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.friend-around-popup-link {
+  display: inline-flex;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.friend-around-popup-link:hover {
+  text-decoration: underline;
+}

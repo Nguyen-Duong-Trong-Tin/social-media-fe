@@ -15,7 +15,7 @@ import {
   approveJoinRequestGroup,
   rejectJoinRequestGroup,
 } from "@/services/group";
-import { userFindUserByIds } from "@/services/user";
+import { findUserById, userFindUserByIds } from "@/services/user";
 import type { IUser } from "@/interfaces/user.interface";
 
 import "./Header.css";
@@ -47,6 +47,7 @@ function Header() {
   >([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [senderById, setSenderById] = useState<Record<string, IUser>>({});
+  const [currentUser, setCurrentUser] = useState<IUser | null>(null);
 
   const navigateToHome = () => {
     navigate("/");
@@ -118,6 +119,20 @@ function Header() {
       requesterId?: string;
     };
   }) => {
+    if (
+      item.type === NotificationType.friend_request ||
+      item.type === NotificationType.friend_accept ||
+      item.type === NotificationType.friend_reject
+    ) {
+      const senderId = item.data?.fromUserId;
+      const sender = senderId ? senderById[senderId] : undefined;
+      if (sender?.slug) {
+        setIsNotificationsOpen(false);
+        navigate(`/profile/${sender.slug}`);
+      }
+      return;
+    }
+
     if (item.type === NotificationType.group_request && item.data?.groupSlug) {
       setIsNotificationsOpen(false);
       navigate(`/group-profile/${item.data.groupSlug}`);
@@ -176,7 +191,7 @@ function Header() {
       }
 
       setNotifications((prev) =>
-        prev.filter((notification) => notification._id !== notificationId)
+        prev.filter((notification) => notification._id !== notificationId),
       );
       await refreshCounts();
     } catch {
@@ -211,15 +226,18 @@ function Header() {
             .filter(
               (item) =>
                 item.type === NotificationType.message ||
-                item.type === NotificationType.group_request
+                item.type === NotificationType.group_request ||
+                item.type === NotificationType.friend_request ||
+                item.type === NotificationType.friend_accept ||
+                item.type === NotificationType.friend_reject,
             )
             .map((item) =>
               item.type === NotificationType.group_request
                 ? item.data?.requesterId
-                : item.data?.fromUserId
+                : item.data?.fromUserId,
             )
-            .filter((id): id is string => Boolean(id))
-        )
+            .filter((id): id is string => Boolean(id)),
+        ),
       ).filter((id) => !senderById[id]);
 
       if (!senderIds.length) {
@@ -248,6 +266,24 @@ function Header() {
     fetchSenders();
   }, [accessToken, notifications, senderById]);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (!accessToken || !userId) {
+        setCurrentUser(null);
+        return;
+      }
+
+      try {
+        const response = await findUserById({ accessToken, id: userId });
+        setCurrentUser(response.data?.data || null);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+
+    fetchCurrentUser();
+  }, [accessToken, userId]);
+
   return (
     <header className="header-container">
       {/* Logo */}
@@ -273,9 +309,6 @@ function Header() {
         <a className="header-nav-link" onClick={navigateToHome}>
           Home
         </a>
-        <a className="header-nav-link" onClick={navigateToMyProfile}>
-          Me
-        </a>
         <a className="header-nav-link" onClick={navigateToMyGroups}>
           Groups
         </a>
@@ -285,8 +318,28 @@ function Header() {
       </nav>
 
       <div className="header-actions">
+        {currentUser && (
+          <button
+            type="button"
+            className="header-user"
+            onClick={navigateToMyProfile}
+            aria-label="Open your profile"
+          >
+            <img
+              className="header-user-avatar"
+              src={currentUser.avatar}
+              alt={currentUser.fullName}
+            />
+            <span className="header-user-name">{currentUser.fullName}</span>
+          </button>
+        )}
         <div className="header-notifications">
-          <Badge count={counts.total} size="small" offset={[-2, 2]}>
+          <Badge
+            count={counts.total}
+            size="small"
+            offset={[-2, 2]}
+            overflowCount={99}
+          >
             <button
               type="button"
               className="header-icon-btn"
@@ -311,9 +364,7 @@ function Header() {
               </div>
               <div className="header-notifications-body">
                 {notificationsLoading && (
-                  <div className="header-notifications-empty">
-                    Loading...
-                  </div>
+                  <div className="header-notifications-empty">Loading...</div>
                 )}
                 {!notificationsLoading && notificationItems.length === 0 && (
                   <div className="header-notifications-empty">
@@ -326,12 +377,18 @@ function Header() {
                       key={item._id}
                       className={
                         item.isRead
-                          ? item.type === NotificationType.message
+                          ? item.type === NotificationType.message ||
+                            item.type === NotificationType.friend_request ||
+                            item.type === NotificationType.friend_accept ||
+                            item.type === NotificationType.friend_reject
                             ? "header-notifications-item clickable"
                             : "header-notifications-item"
-                          : item.type === NotificationType.message
-                          ? "header-notifications-item unread clickable"
-                          : "header-notifications-item unread"
+                          : item.type === NotificationType.message ||
+                              item.type === NotificationType.friend_request ||
+                              item.type === NotificationType.friend_accept ||
+                              item.type === NotificationType.friend_reject
+                            ? "header-notifications-item unread clickable"
+                            : "header-notifications-item unread"
                       }
                       onClick={() => handleNotificationClick(item)}
                     >
@@ -348,6 +405,17 @@ function Header() {
                             </span>
                             {` ${item.message}`}
                           </>
+                        ) : (item.type === NotificationType.friend_request ||
+                            item.type === NotificationType.friend_accept ||
+                            item.type === NotificationType.friend_reject) &&
+                          item.data?.fromUserId ? (
+                          <>
+                            <span className="header-notifications-sender">
+                              {senderNameById[item.data.fromUserId] ||
+                                "Someone"}
+                            </span>
+                            {` ${item.message}`}
+                          </>
                         ) : item.type === NotificationType.group_request &&
                           item.data?.requesterId ? (
                           (() => {
@@ -357,7 +425,7 @@ function Header() {
                               requester?.fullName || "Someone";
                             const requesterSlug = requester?.slug;
                             const remainder = item.message.startsWith(
-                              requesterName
+                              requesterName,
                             )
                               ? item.message.slice(requesterName.length)
                               : ` requested to join your group.`;
@@ -368,8 +436,12 @@ function Header() {
                                   type="button"
                                   className="header-notifications-sender"
                                   style={{
-                                    cursor: requesterSlug ? "pointer" : "default",
-                                    textDecoration: requesterSlug ? "underline" : "none",
+                                    cursor: requesterSlug
+                                      ? "pointer"
+                                      : "default",
+                                    textDecoration: requesterSlug
+                                      ? "underline"
+                                      : "none",
                                     background: "none",
                                     border: "none",
                                     padding: 0,
@@ -444,4 +516,3 @@ function Header() {
 }
 
 export default Header;
-

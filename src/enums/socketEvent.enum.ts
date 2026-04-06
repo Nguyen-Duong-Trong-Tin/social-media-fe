@@ -29,9 +29,23 @@ enum SocketEvent {
   CLIENT_DELETE_FRIEND = "client.delete.friend",
   SERVER_RESPONSE_DELETE_FRIEND = "server.response.delete.friend",
 
-  SERVER_PUSH_NOTIFICATION = "server.push.notification",
+  CLIENT_UPDATE_LOCATION = "client.update.location",
+  SERVER_LOCATION_UPDATED = "server.location.updated",
 
+  CLIENT_CALL_OFFER = "client.call.offer",
+  SERVER_CALL_OFFER = "server.call.offer",
+  CLIENT_CALL_ANSWER = "client.call.answer",
+  SERVER_CALL_ANSWER = "server.call.answer",
+  CLIENT_CALL_ICE = "client.call.ice",
+  SERVER_CALL_ICE = "server.call.ice",
+  CLIENT_CALL_END = "client.call.end",
+  SERVER_CALL_END = "server.call.end",
+  CLIENT_CALL_UPGRADE_REQUEST = "client.call.upgrade.request",
+  SERVER_CALL_UPGRADE_REQUEST = "server.call.upgrade.request",
+  CLIENT_CALL_UPGRADE_RESPONSE = "client.call.upgrade.response",
+  SERVER_CALL_UPGRADE_RESPONSE = "server.call.upgrade.response",
+
+  SERVER_PUSH_NOTIFICATION = "server.push.notification",
 }
 
 export default SocketEvent;
-
