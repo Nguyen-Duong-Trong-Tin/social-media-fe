@@ -9,7 +9,6 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
   CloseOutlined,
-  PhoneOutlined,
   PushpinFilled,
   UserOutlined,
   VideoCameraAddOutlined,

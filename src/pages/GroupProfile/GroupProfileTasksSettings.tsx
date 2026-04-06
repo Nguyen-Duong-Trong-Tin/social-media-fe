@@ -18,9 +18,7 @@ function GroupProfileTasksSettings({
   const items: MenuProps["items"] = [
     {
       key: "scoring",
-      label: (
-        <GroupProfileTasksScoring taskGroup={taskGroup} setReload={setReload} />
-      ),
+      label: <GroupProfileTasksScoring taskGroup={taskGroup} />,
     },
     {
       key: "edit",
@@ -52,4 +50,3 @@ function GroupProfileTasksSettings({
 }
 
 export default GroupProfileTasksSettings;
-
