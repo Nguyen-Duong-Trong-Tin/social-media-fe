@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Avatar, Button, Flex } from "antd";
@@ -144,46 +144,52 @@ function RoomChat() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const stopRingtone = () => {
+  const stopRingtone = useCallback(() => {
     if (ringtoneIntervalRef.current) {
       window.clearInterval(ringtoneIntervalRef.current);
       ringtoneIntervalRef.current = null;
     }
-  };
+  }, []);
 
-  const playTone = (frequency: number, durationMs: number, volume = 0.08) => {
-    try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext();
+  const playTone = useCallback(
+    (frequency: number, durationMs: number, volume = 0.08) => {
+      try {
+        if (!audioContextRef.current) {
+          audioContextRef.current = new AudioContext();
+        }
+        const ctx = audioContextRef.current;
+        if (!ctx) return;
+
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.frequency.value = frequency;
+        gainNode.gain.value = volume;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + durationMs / 1000);
+      } catch {
+        // ignore audio errors
       }
-      const ctx = audioContextRef.current;
-      if (!ctx) return;
+    },
+    [],
+  );
 
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
+  const startRingtone = useCallback(
+    (type: "incoming" | "outgoing") => {
+      stopRingtone();
+      const frequency = type === "incoming" ? 520 : 420;
+      ringtoneIntervalRef.current = window.setInterval(() => {
+        playTone(frequency, 350);
+      }, 1200);
+    },
+    [playTone, stopRingtone],
+  );
 
-      oscillator.frequency.value = frequency;
-      gainNode.gain.value = volume;
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + durationMs / 1000);
-    } catch {
-      // ignore audio errors
-    }
-  };
-
-  const startRingtone = (type: "incoming" | "outgoing") => {
-    stopRingtone();
-    const frequency = type === "incoming" ? 520 : 420;
-    ringtoneIntervalRef.current = window.setInterval(() => {
-      playTone(frequency, 350);
-    }, 1200);
-  };
-
-  const cleanupCall = () => {
+  const cleanupCall = useCallback(() => {
     stopRingtone();
     peerRef.current?.close();
     peerRef.current = null;
@@ -211,7 +217,7 @@ function RoomChat() {
     setCallDuration(0);
     setIsUpgradePending(false);
     setUpgradeRequest(null);
-  };
+  }, [stopRingtone]);
 
   const createPeerConnection = (targetUserId: string) => {
     const peer = new RTCPeerConnection({
@@ -420,7 +426,7 @@ function RoomChat() {
       !callStartedAt && callState.isCalling ? "canceled" : "ended";
 
     socket.emit(SocketEvent.CLIENT_CALL_END, {
-      fromUserId: userId,
+      fromUserId: callState.fromUserId || userId,
       toUserId: otherUserId || callState.fromUserId || "",
       roomChatId,
       durationSeconds,
@@ -433,6 +439,14 @@ function RoomChat() {
 
   const requestVideoUpgrade = () => {
     if (!userId || !roomChatId || !otherUserId) return;
+    if (!callState.isOpen || callState.isCalling || callState.isIncoming) {
+      toast.info("Wait until the call is connected.");
+      return;
+    }
+    if (!callStartedAt) {
+      toast.info("Wait until the call is connected.");
+      return;
+    }
     if (isUpgradePending) return;
 
     socket.emit(SocketEvent.CLIENT_CALL_UPGRADE_REQUEST, {
@@ -519,6 +533,9 @@ function RoomChat() {
       if (data.toUserId !== userId || data.roomChatId !== roomChatId) return;
 
       if (data.upgrade && callState.isOpen) {
+        if (callState.isCalling || callState.isIncoming || !callStartedAt) {
+          return;
+        }
         if (!upgradeApprovedRef.current || !peerRef.current) {
           return;
         }
@@ -625,6 +642,9 @@ function RoomChat() {
     }) => {
       if (data.toUserId !== userId || data.roomChatId !== roomChatId) return;
       if (!callState.isOpen || callState.callType !== "audio") return;
+      if (callState.isCalling || callState.isIncoming || !callStartedAt) {
+        return;
+      }
 
       setUpgradeRequest({ fromUserId: data.fromUserId });
     };
@@ -686,7 +706,16 @@ function RoomChat() {
         handleUpgradeResponse,
       );
     };
-  }, [callState.callType, callState.isOpen, roomChatId, userId]);
+  }, [
+    callStartedAt,
+    callState.callType,
+    callState.isCalling,
+    callState.isIncoming,
+    callState.isOpen,
+    cleanupCall,
+    roomChatId,
+    userId,
+  ]);
 
   useEffect(() => {
     if (!callState.isOpen) {
@@ -705,7 +734,13 @@ function RoomChat() {
     }
 
     stopRingtone();
-  }, [callState.isCalling, callState.isIncoming, callState.isOpen]);
+  }, [
+    callState.isCalling,
+    callState.isIncoming,
+    callState.isOpen,
+    startRingtone,
+    stopRingtone,
+  ]);
 
   useEffect(() => {
     if (!callState.isOpen || callState.isCalling || callState.isIncoming) {
@@ -921,7 +956,7 @@ function RoomChat() {
     return () => {
       cleanupCall();
     };
-  }, []);
+  }, [cleanupCall]);
 
   useEffect(() => {
     const fetchRoomChatUserProfiles = async () => {
