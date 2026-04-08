@@ -9,7 +9,9 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
   CloseOutlined,
+  DesktopOutlined,
   PushpinFilled,
+  StopOutlined,
   UserOutlined,
   VideoCameraAddOutlined,
   VideoCameraOutlined,
@@ -107,6 +109,7 @@ function RoomChat() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [hasVideoTrack, setHasVideoTrack] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callStartedAt, setCallStartedAt] = useState<number | null>(null);
   const [callDuration, setCallDuration] = useState(0);
   const [isUpgradePending, setIsUpgradePending] = useState(false);
@@ -121,6 +124,11 @@ function RoomChat() {
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const ringtoneIntervalRef = useRef<number | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+  const screenVideoSenderRef = useRef<RTCRtpSender | null>(null);
+  const screenAudioSenderRef = useRef<RTCRtpSender | null>(null);
+  const cameraVideoTrackRef = useRef<MediaStreamTrack | null>(null);
+  const micAudioTrackRef = useRef<MediaStreamTrack | null>(null);
   const upgradeApprovedRef = useRef(false);
   const callEndedRef = useRef(false);
   const pendingOfferRef = useRef<{
@@ -194,6 +202,14 @@ function RoomChat() {
     peerRef.current?.close();
     peerRef.current = null;
 
+    screenStreamRef.current?.getTracks().forEach((track) => track.stop());
+    screenStreamRef.current = null;
+    screenVideoSenderRef.current = null;
+    screenAudioSenderRef.current = null;
+    cameraVideoTrackRef.current = null;
+    micAudioTrackRef.current = null;
+    setIsScreenSharing(false);
+
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
     remoteStreamRef.current = null;
@@ -218,6 +234,104 @@ function RoomChat() {
     setIsUpgradePending(false);
     setUpgradeRequest(null);
   }, [stopRingtone]);
+
+  const startScreenShare = async () => {
+    if (!peerRef.current || !callState.isOpen) return;
+    if (callState.isCalling || callState.isIncoming) return;
+    if (isScreenSharing) return;
+    if (!hasVideoTrack) {
+      toast.info("Upgrade to video before sharing the screen.");
+      return;
+    }
+
+    try {
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+
+      const [screenVideoTrack] = displayStream.getVideoTracks();
+      if (!screenVideoTrack) {
+        displayStream.getTracks().forEach((track) => track.stop());
+        toast.error("Unable to share the screen.");
+        return;
+      }
+
+      screenStreamRef.current = displayStream;
+      screenVideoTrack.onended = () => {
+        stopScreenShare();
+      };
+
+      const videoSender = peerRef.current
+        .getSenders()
+        .find((sender) => sender.track?.kind === "video");
+
+      if (videoSender) {
+        cameraVideoTrackRef.current = videoSender.track || null;
+        await videoSender.replaceTrack(screenVideoTrack);
+        screenVideoSenderRef.current = videoSender;
+      } else {
+        screenVideoSenderRef.current = peerRef.current.addTrack(
+          screenVideoTrack,
+          displayStream,
+        );
+      }
+
+      const [screenAudioTrack] = displayStream.getAudioTracks();
+      if (screenAudioTrack) {
+        const audioSender = peerRef.current
+          .getSenders()
+          .find((sender) => sender.track?.kind === "audio");
+
+        if (audioSender) {
+          micAudioTrackRef.current = audioSender.track || null;
+          await audioSender.replaceTrack(screenAudioTrack);
+          screenAudioSenderRef.current = audioSender;
+        } else {
+          screenAudioSenderRef.current = peerRef.current.addTrack(
+            screenAudioTrack,
+            displayStream,
+          );
+        }
+      }
+
+      setIsScreenSharing(true);
+    } catch {
+      toast.error("Unable to start screen sharing.");
+    }
+  };
+
+  const stopScreenShare = async () => {
+    if (!peerRef.current || !screenStreamRef.current) return;
+
+    if (screenVideoSenderRef.current) {
+      if (cameraVideoTrackRef.current) {
+        await screenVideoSenderRef.current.replaceTrack(
+          cameraVideoTrackRef.current,
+        );
+      } else {
+        peerRef.current.removeTrack(screenVideoSenderRef.current);
+      }
+    }
+
+    if (screenAudioSenderRef.current) {
+      if (micAudioTrackRef.current) {
+        await screenAudioSenderRef.current.replaceTrack(
+          micAudioTrackRef.current,
+        );
+      } else {
+        peerRef.current.removeTrack(screenAudioSenderRef.current);
+      }
+    }
+
+    screenStreamRef.current.getTracks().forEach((track) => track.stop());
+    screenStreamRef.current = null;
+    screenVideoSenderRef.current = null;
+    screenAudioSenderRef.current = null;
+    cameraVideoTrackRef.current = null;
+    micAudioTrackRef.current = null;
+    setIsScreenSharing(false);
+  };
 
   const createPeerConnection = (targetUserId: string) => {
     const peer = new RTCPeerConnection({
@@ -767,9 +881,13 @@ function RoomChat() {
 
   useEffect(() => {
     if (localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
+      if (isScreenSharing && screenStreamRef.current) {
+        localVideoRef.current.srcObject = screenStreamRef.current;
+      } else {
+        localVideoRef.current.srcObject = localStream;
+      }
     }
-  }, [localStream, callState.isOpen]);
+  }, [localStream, callState.isOpen, isScreenSharing]);
 
   useEffect(() => {
     if (remoteVideoRef.current) {
@@ -1624,7 +1742,23 @@ function RoomChat() {
                   }
                   onClick={toggleCamera}
                   disabled={
-                    callState.callType === "audio" ? false : !hasVideoTrack
+                    isScreenSharing ||
+                    (callState.callType === "audio" ? false : !hasVideoTrack)
+                  }
+                />
+                <Button
+                  shape="circle"
+                  icon={
+                    isScreenSharing ? <StopOutlined /> : <DesktopOutlined />
+                  }
+                  onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+                  disabled={
+                    !peerRef.current ||
+                    callState.isIncoming ||
+                    callState.isCalling
+                  }
+                  title={
+                    isScreenSharing ? "Stop screen sharing" : "Share screen"
                   }
                 />
               </div>
