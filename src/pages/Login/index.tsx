@@ -120,6 +120,12 @@ const Login = () => {
               />
             </Form.Item>
 
+            <div className="login-forgot-password-wrap">
+              <Link to="/forgot-password" className="login-forgot-password-link">
+                Forgot password?
+              </Link>
+            </div>
+
             <Form.Item>
               <Button
                 type="primary"

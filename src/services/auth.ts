@@ -58,3 +58,29 @@ export const authRefreshToken = async ({
   return response;
 };
 
+export const authForgotPassword = async ({ email }: { email: string }) => {
+  const response = await axios.post(`${v1}/auth/forgot-password`, {
+    email,
+  });
+  return response;
+};
+
+export const authResetPassword = async ({
+  email,
+  token,
+  password,
+  confirmPassword,
+}: {
+  email: string;
+  token: string;
+  password: string;
+  confirmPassword: string;
+}) => {
+  const response = await axios.post(`${v1}/auth/reset-password`, {
+    email,
+    token,
+    password,
+    confirmPassword,
+  });
+  return response;
+};

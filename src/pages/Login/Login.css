@@ -124,6 +124,22 @@
   font-weight: 600;
 }
 
+.login-forgot-password-wrap {
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+
+.login-forgot-password-link {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-forgot-password-link:hover {
+  text-decoration: underline;
+}
+
 .login-btn-google {
   width: 100%;
   height: 46px;

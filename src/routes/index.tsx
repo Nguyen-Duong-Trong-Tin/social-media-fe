@@ -16,6 +16,8 @@ import FriendsPage from "@/pages/Friends";
 import SearchPage from "@/pages/Search";
 import RoomChat from "@/pages/RoomChat";
 import MessagesPage from "@/pages/Messages";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 const router = createBrowserRouter([
   {
@@ -80,6 +82,14 @@ const router = createBrowserRouter([
         element: <Register />,
       },
       {
+        path: "forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
+      },
+      {
         path: "*",
         element: <NotFound />,
       },
@@ -88,4 +98,3 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
-
