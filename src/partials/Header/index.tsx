@@ -329,6 +329,7 @@ function Header() {
               className="header-user-avatar"
               src={currentUser.avatar}
               alt={currentUser.fullName}
+              referrerPolicy="no-referrer"
             />
             <span className="header-user-name">{currentUser.fullName}</span>
           </button>

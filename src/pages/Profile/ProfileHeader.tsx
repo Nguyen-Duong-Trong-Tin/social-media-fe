@@ -21,6 +21,7 @@ function ProfileHeader({
                 ? user.coverPhoto
                 : "https://cellphones.com.vn/sforum/wp-content/uploads/2024/04/anh-bia-facebook-3.jpg"
             }
+            referrerPolicy="no-referrer"
           />
         )}
       </div>
@@ -35,6 +36,7 @@ function ProfileHeader({
                   ? user.avatar
                   : "https://aic.com.vn/wp-content/uploads/2024/10/avatar-fb-mac-dinh-2.jpg"
               }
+              referrerPolicy="no-referrer"
             />
           )}
         </div>
@@ -52,4 +54,3 @@ function ProfileHeader({
 }
 
 export default ProfileHeader;
-
