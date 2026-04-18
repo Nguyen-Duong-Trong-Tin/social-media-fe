@@ -322,6 +322,46 @@
   overflow: hidden;
 }
 
+.profile-article-description p {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+  overflow: visible;
+}
+
+.profile-article-description--expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+  overflow: visible;
+}
+
+.profile-article-description-toggle {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-article-description-toggle:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.profile-article-description-toggle:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .profile-article-actions {
   display: flex;
   gap: 8px;

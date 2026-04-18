@@ -59,7 +59,12 @@ function GroupProfileArticles({
 }: GroupProfileArticlesProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<IArticleGroup | null>(null);
+  const [editingArticle, setEditingArticle] = useState<IArticleGroup | null>(
+    null,
+  );
+  const [expandedArticles, setExpandedArticles] = useState<
+    Record<string, boolean>
+  >({});
 
   const [form] = Form.useForm();
   const [title, setTitle] = useState("");
@@ -72,10 +77,12 @@ function GroupProfileArticles({
 
   const modalTitle = useMemo(
     () => (editingArticle ? "Edit Article" : "Create Article"),
-    [editingArticle]
+    [editingArticle],
   );
 
-  const canManage = Boolean(group?.users?.some((user) => user.userId === userId));
+  const canManage = Boolean(
+    group?.users?.some((user) => user.userId === userId),
+  );
 
   const openCreateModal = () => {
     setEditingArticle(null);
@@ -89,8 +96,12 @@ function GroupProfileArticles({
   };
 
   const openEditModal = (article: IArticleGroup) => {
-    const imageUrls = normalizeMediaList(article.images as unknown as string[] | string);
-    const videoUrls = normalizeMediaList(article.videos as unknown as string[] | string);
+    const imageUrls = normalizeMediaList(
+      article.images as unknown as string[] | string,
+    );
+    const videoUrls = normalizeMediaList(
+      article.videos as unknown as string[] | string,
+    );
     const nextImages = toUploadFileList(imageUrls, "image");
     const nextVideos = toUploadFileList(videoUrls, "video");
 
@@ -99,7 +110,11 @@ function GroupProfileArticles({
     setDescription(article.description);
     setImagesFileList(nextImages);
     setVideosFileList(nextVideos);
-    form.setFieldsValue({ title: article.title, images: nextImages, videos: nextVideos });
+    form.setFieldsValue({
+      title: article.title,
+      images: nextImages,
+      videos: nextVideos,
+    });
     setIsModalOpen(true);
   };
 
@@ -136,12 +151,14 @@ function GroupProfileArticles({
       });
     }
     const fileWindow = window.open(src);
-    fileWindow?.document.write(`<iframe src="${src}" style="width:100%;height:100%" />`);
+    fileWindow?.document.write(
+      `<iframe src="${src}" style="width:100%;height:100%" />`,
+    );
   };
 
   const normFile = (e?: { fileList?: UploadFile[] } | UploadFile[]) => {
     if (!e) return [];
-    return Array.isArray(e) ? e : e.fileList ?? [];
+    return Array.isArray(e) ? e : (e.fileList ?? []);
   };
 
   const normalizeMediaList = (media?: string[] | string) => {
@@ -178,7 +195,8 @@ function GroupProfileArticles({
     files
       .filter((file) => {
         const hasNewFile = Boolean(
-          file.originFileObj || (file as UploadFile & { originFile?: File }).originFile
+          file.originFileObj ||
+          (file as UploadFile & { originFile?: File }).originFile,
         );
         return !hasNewFile && Boolean(file.url);
       })
@@ -271,8 +289,12 @@ function GroupProfileArticles({
   };
 
   const renderMedia = (article: IArticleGroup) => {
-    const images = normalizeMediaList(article.images as unknown as string[] | string);
-    const videos = normalizeMediaList(article.videos as unknown as string[] | string);
+    const images = normalizeMediaList(
+      article.images as unknown as string[] | string,
+    );
+    const videos = normalizeMediaList(
+      article.videos as unknown as string[] | string,
+    );
     const hasMedia = images.length > 0 || videos.length > 0;
 
     if (!hasMedia) {
@@ -331,6 +353,26 @@ function GroupProfileArticles({
       timeStyle: "short",
     }).format(new Date(value));
 
+  const descriptionMaxLength = 280;
+
+  const stripHtmlTags = (html: string) => {
+    const parser = new DOMParser();
+    return (
+      parser.parseFromString(html, "text/html").body.textContent ?? ""
+    ).trim();
+  };
+
+  const isDescriptionLong = (html: string) => {
+    return stripHtmlTags(html).length > descriptionMaxLength;
+  };
+
+  const toggleDescription = (articleId: string) => {
+    setExpandedArticles((prev) => ({
+      ...prev,
+      [articleId]: !prev[articleId],
+    }));
+  };
+
   return (
     <Card className="profile-card">
       <CardHeader>
@@ -353,40 +395,60 @@ function GroupProfileArticles({
           <Empty description="No articles found" />
         ) : (
           <div className="profile-article-grid">
-            {articles.map((article) => (
-              <article key={article._id} className="profile-article-card">
-                <div className="profile-article-content">
-                  <h3>{article.title}</h3>
-                  <div className="profile-article-meta">
-                    <span>Created: {formatDateTime(article.createdAt)}</span>
-                    <span>Updated: {formatDateTime(article.updatedAt)}</span>
-                  </div>
-                  <div
-                    className="profile-article-description"
-                    dangerouslySetInnerHTML={{ __html: article.description }}
-                  />
-                  {article.createdBy?.userId === userId && (
-                    <div className="profile-article-actions">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditModal(article)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(article)}
-                      >
-                        Delete
-                      </Button>
+            {articles.map((article) => {
+              const isLongDescription = isDescriptionLong(article.description);
+              const isExpanded = Boolean(expandedArticles[article._id]);
+
+              return (
+                <article key={article._id} className="profile-article-card">
+                  <div className="profile-article-content">
+                    <h3>{article.title}</h3>
+                    <div className="profile-article-meta">
+                      <span>Created: {formatDateTime(article.createdAt)}</span>
+                      <span>Updated: {formatDateTime(article.updatedAt)}</span>
                     </div>
-                  )}
-                </div>
-                <div className="profile-article-media">{renderMedia(article)}</div>
-              </article>
-            ))}
+                    <div
+                      className={`profile-article-description ${
+                        isExpanded
+                          ? "profile-article-description--expanded"
+                          : ""
+                      }`}
+                      dangerouslySetInnerHTML={{ __html: article.description }}
+                    />
+                    {isLongDescription && (
+                      <button
+                        type="button"
+                        className="profile-article-description-toggle"
+                        onClick={() => toggleDescription(article._id)}
+                      >
+                        {isExpanded ? "Show less" : "See full description"}
+                      </button>
+                    )}
+                    {article.createdBy?.userId === userId && (
+                      <div className="profile-article-actions">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(article)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(article)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="profile-article-media">
+                    {renderMedia(article)}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </CardContent>
@@ -465,7 +527,12 @@ function GroupProfileArticles({
         </Form>
       </Modal>
 
-      <Modal open={previewOpen} onCancel={closePreview} footer={null} title="Preview">
+      <Modal
+        open={previewOpen}
+        onCancel={closePreview}
+        footer={null}
+        title="Preview"
+      >
         {previewType === "image" ? (
           <img src={previewSrc} alt="Preview" style={{ width: "100%" }} />
         ) : (
@@ -477,4 +544,3 @@ function GroupProfileArticles({
 }
 
 export default GroupProfileArticles;
-
