@@ -99,3 +99,63 @@ export const deleteArticleGroup = async ({
   return response;
 };
 
+export const toggleLikeArticleGroup = async ({
+  accessToken,
+  id,
+  userId,
+}: {
+  accessToken: string;
+  id: string;
+  userId: string;
+}) => {
+  const response = await axios.patch(
+    `${v1}/articleGroups/${id}/like`,
+    { userId },
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+  return response;
+};
+
+export const createCommentArticleGroup = async ({
+  accessToken,
+  id,
+  userId,
+  content,
+}: {
+  accessToken: string;
+  id: string;
+  userId: string;
+  content: string;
+}) => {
+  const response = await axios.post(
+    `${v1}/articleGroups/${id}/comments`,
+    { userId, content },
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+  return response;
+};
+
+export const deleteCommentArticleGroup = async ({
+  accessToken,
+  id,
+  commentId,
+  userId,
+}: {
+  accessToken: string;
+  id: string;
+  commentId: string;
+  userId: string;
+}) => {
+  const response = await axios.delete(
+    `${v1}/articleGroups/${id}/comments/${commentId}`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      data: { userId },
+    },
+  );
+  return response;
+};

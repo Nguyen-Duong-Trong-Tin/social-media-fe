@@ -368,6 +368,94 @@
   margin-top: 12px;
 }
 
+.profile-article-engagement {
+  margin-top: 10px;
+}
+
+.profile-article-engagement-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.profile-article-comments {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-article-comment-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.profile-article-comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-article-comment-item {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.profile-article-comment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.profile-article-comment-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-article-liked-users-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-article-liked-user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-article-comment-content {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #334155;
+  white-space: pre-wrap;
+}
+
+.profile-article-comment-delete {
+  margin-top: 6px;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.profile-article-comment-delete:hover {
+  text-decoration: underline;
+}
+
+.profile-article-comment-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .profile-article-form {
   display: flex;
   flex-direction: column;

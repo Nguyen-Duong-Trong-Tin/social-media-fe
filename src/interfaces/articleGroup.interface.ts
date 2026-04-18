@@ -14,7 +14,16 @@ export interface IArticleGroup extends IBase {
     userId: string;
     createdAt: Date;
   };
+  likes?: {
+    userId: string;
+    createdAt: Date | string;
+  }[];
+  comments?: {
+    _id?: string;
+    userId: string;
+    content: string;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  }[];
   deleted: boolean;
 }
-
-

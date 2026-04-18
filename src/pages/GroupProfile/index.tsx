@@ -220,4 +220,3 @@ function GroupProfilePage() {
 }
 
 export default GroupProfilePage;
-
