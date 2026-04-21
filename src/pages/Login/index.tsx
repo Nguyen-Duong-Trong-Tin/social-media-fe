@@ -28,6 +28,8 @@ const Login = () => {
       if (error) {
         if (error === "account_exists_local") {
           toast.error("Email already registered. Please login with email.");
+        } else if (error === "inactive_account") {
+          toast.error("Your account is inactive. Please contact support.");
         } else {
           toast.error("Google login failed. Please try again.");
         }
@@ -68,8 +70,14 @@ const Login = () => {
       setCookie("refreshToken", data.refreshToken, 90);
 
       navigate("/");
-    } catch {
-      toast.error("Login failed. Please check your credentials.");
+    } catch (error: any) {
+      const message: string | undefined = error?.response?.data?.message;
+
+      if (message === "Account is inactive") {
+        toast.error("Your account is inactive. Please contact support.");
+      } else {
+        toast.error("Login failed. Please check your credentials.");
+      }
     }
 
     setLoading(false);
@@ -121,7 +129,10 @@ const Login = () => {
             </Form.Item>
 
             <div className="login-forgot-password-wrap">
-              <Link to="/forgot-password" className="login-forgot-password-link">
+              <Link
+                to="/forgot-password"
+                className="login-forgot-password-link"
+              >
                 Forgot password?
               </Link>
             </div>

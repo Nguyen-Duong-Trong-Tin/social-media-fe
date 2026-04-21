@@ -171,6 +171,13 @@ function GroupProfileArticles({
     };
   };
 
+  const htmlToPlainText = (html: string) => {
+    const parser = new DOMParser();
+    return (
+      parser.parseFromString(html, "text/html").body.textContent ?? ""
+    ).trim();
+  };
+
   const openCreateModal = () => {
     setEditingArticle(null);
     setTitle("");
@@ -384,6 +391,10 @@ function GroupProfileArticles({
   };
 
   const handleToggleLike = async (article: IArticleGroup) => {
+    const hasLiked = (article.likes ?? []).some(
+      (like) => like.userId === userId,
+    );
+
     try {
       setIsLiking((prev) => ({ ...prev, [article._id]: true }));
       await toggleLikeArticleGroup({
@@ -391,6 +402,11 @@ function GroupProfileArticles({
         id: article._id,
         userId,
       });
+      toast.success(
+        hasLiked
+          ? "Article unliked successfully."
+          : "Article liked successfully.",
+      );
       onReload();
     } catch {
       toast.error("Like failed. Please try again.");
@@ -400,8 +416,8 @@ function GroupProfileArticles({
   };
 
   const handleCommentSubmit = async (article: IArticleGroup) => {
-    const content = (commentDrafts[article._id] || "").trim();
-    if (!content) {
+    const content = commentDrafts[article._id] || "";
+    if (!htmlToPlainText(content)) {
       toast.error("Please enter a comment.");
       return;
     }
@@ -437,12 +453,28 @@ function GroupProfileArticles({
         commentId,
         userId,
       });
+      toast.success("Comment deleted successfully.");
       onReload();
     } catch {
       toast.error("Delete comment failed. Please try again.");
     } finally {
       setIsDeletingComment((prev) => ({ ...prev, [commentId]: false }));
     }
+  };
+
+  const confirmDeleteComment = (article: IArticleGroup, commentId?: string) => {
+    if (!commentId) return;
+
+    Modal.confirm({
+      title: "Delete this comment?",
+      content: "This action cannot be undone.",
+      okText: "Delete",
+      cancelText: "Cancel",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        await handleDeleteComment(article, commentId);
+      },
+    });
   };
 
   const renderMedia = (article: IArticleGroup) => {
@@ -770,16 +802,19 @@ function GroupProfileArticles({
         {commentsModalArticle && (
           <div className="profile-article-comments">
             <div className="profile-article-comment-form">
-              <Input
-                value={commentDrafts[commentsModalArticle._id] ?? ""}
-                placeholder="Write a comment..."
-                onChange={(e) =>
+              <BoxTinyMCE
+                key={`comment-${commentsModalArticle._id}`}
+                label="Write a comment"
+                initialValue={commentDrafts[commentsModalArticle._id] ?? ""}
+                setValue={(nextValue) => {
                   setCommentDrafts((prev) => ({
                     ...prev,
-                    [commentsModalArticle._id]: e.target.value,
-                  }))
-                }
-                onPressEnter={() => handleCommentSubmit(commentsModalArticle)}
+                    [commentsModalArticle._id]:
+                      typeof nextValue === "string"
+                        ? nextValue
+                        : (prev[commentsModalArticle._id] ?? ""),
+                  }));
+                }}
               />
               <Button
                 type="button"
@@ -812,7 +847,9 @@ function GroupProfileArticles({
                         <span>{formatDateTime(comment.createdAt)}</span>
                       </div>
                       <div className="profile-article-comment-content">
-                        {comment.content}
+                        <div
+                          dangerouslySetInnerHTML={{ __html: comment.content }}
+                        />
                       </div>
                       {canDeleteComment && (
                         <button
@@ -822,7 +859,7 @@ function GroupProfileArticles({
                             comment._id && isDeletingComment[comment._id],
                           )}
                           onClick={() =>
-                            handleDeleteComment(
+                            confirmDeleteComment(
                               commentsModalArticle,
                               comment._id,
                             )

@@ -43,11 +43,11 @@ function GroupProfileTasksButtonEdit({
   const [description, setDescription] = useState("");
   const [imageFileList, setImageFileList] = useState<UploadFile[]>([]);
   const [imageFileListRemoved, setImageFileListRemoved] = useState<string[]>(
-    []
+    [],
   );
   const [videoFileList, setVideoFileList] = useState<UploadFile[]>([]);
   const [videoFileListRemoved, setVideoFileListRemoved] = useState<string[]>(
-    []
+    [],
   );
 
   useEffect(() => {
@@ -66,7 +66,7 @@ function GroupProfileTasksButtonEdit({
       });
 
       taskGroup.images = taskGroup.images.filter(
-        (taskGroup) => taskGroup !== IMAGE_NOT_FOUND_SRC
+        (taskGroup) => taskGroup !== IMAGE_NOT_FOUND_SRC,
       );
 
       if (taskGroup.images.length) {
@@ -76,7 +76,7 @@ function GroupProfileTasksButtonEdit({
       }
 
       taskGroup.videos = taskGroup.videos.filter(
-        (taskGroup) => taskGroup !== ""
+        (taskGroup) => taskGroup !== "",
       );
 
       if (taskGroup.videos.length) {
@@ -180,11 +180,11 @@ function GroupProfileTasksButtonEdit({
       fd.append("description", description);
       fd.append(
         "deadline",
-        values.deadline?.format("YYYY-MM-DD HH:mm:ss") ?? ""
+        values.deadline?.format("YYYY-MM-DD HH:mm:ss") ?? "",
       );
 
       const processFiles = (
-        files: (UploadFile | undefined)[] | undefined
+        files: (UploadFile | undefined)[] | undefined,
       ): {
         newFiles: File[];
         existingUrls: string[];
@@ -259,7 +259,7 @@ function GroupProfileTasksButtonEdit({
       }
 
       await res.json().catch(() => ({}));
-      toast.success("Submit successfully.");
+      toast.success("Task updated successfully.");
       setIsModalOpen(false);
       setImageFileList([]);
       setVideoFileList([]);
@@ -378,4 +378,3 @@ function GroupProfileTasksButtonEdit({
 }
 
 export default GroupProfileTasksButtonEdit;
-

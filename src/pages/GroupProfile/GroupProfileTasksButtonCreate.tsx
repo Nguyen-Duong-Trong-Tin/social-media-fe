@@ -12,7 +12,7 @@ import {
 } from "antd";
 import { toast } from "react-toastify";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 
 import { getCookie } from "@/helpers/cookies";
 import BoxTinyMCE from "@/components/boxTinyMCE";
@@ -125,11 +125,11 @@ function GroupProfileTasksButtonCreate({
       fd.append("groupId", group._id);
       fd.append(
         "deadline",
-        values.deadline?.format("YYYY-MM-DD HH:mm:ss") ?? ""
+        values.deadline?.format("YYYY-MM-DD HH:mm:ss") ?? "",
       );
 
       const processFiles = (
-        files: (UploadFile | undefined)[] | undefined
+        files: (UploadFile | undefined)[] | undefined,
       ): {
         newFiles: File[];
         existingUrls: string[];
@@ -201,7 +201,7 @@ function GroupProfileTasksButtonCreate({
       }
 
       await res.json().catch(() => ({}));
-      toast.success("Submit successfully.");
+      toast.success("Task created successfully.");
       setIsModalOpen(false);
 
       setImageFileList([]);
@@ -220,6 +220,34 @@ function GroupProfileTasksButtonCreate({
     if (!e) return [];
     if (Array.isArray(e)) return e;
     return e.fileList;
+  };
+
+  const getNumberRange = (count: number) =>
+    Array.from({ length: count }, (_, index) => index);
+
+  const disabledDate = (current: Dayjs) => {
+    return current.isBefore(dayjs().startOf("day"));
+  };
+
+  const disabledTime = (current: Dayjs | null) => {
+    if (!current || !current.isSame(dayjs(), "day")) {
+      return {};
+    }
+
+    const now = dayjs();
+    const currentHour = now.hour();
+    const currentMinute = now.minute();
+    const currentSecond = now.second();
+
+    return {
+      disabledHours: () => getNumberRange(currentHour),
+      disabledMinutes: (selectedHour: number) =>
+        selectedHour === currentHour ? getNumberRange(currentMinute) : [],
+      disabledSeconds: (selectedHour: number, selectedMinute: number) =>
+        selectedHour === currentHour && selectedMinute === currentMinute
+          ? getNumberRange(currentSecond)
+          : [],
+    };
   };
 
   return (
@@ -300,9 +328,15 @@ function GroupProfileTasksButtonCreate({
           <Form.Item
             name="deadline"
             label="Deadline"
-            rules={[{ required: true, message: "Please choose your deadline!" }]}
+            rules={[
+              { required: true, message: "Please choose your deadline!" },
+            ]}
           >
-            <DatePicker showTime />
+            <DatePicker
+              showTime
+              disabledDate={disabledDate}
+              disabledTime={disabledTime}
+            />
           </Form.Item>
 
           <Form.Item className="flex justify-end" label={null}>
@@ -319,4 +353,3 @@ function GroupProfileTasksButtonCreate({
 }
 
 export default GroupProfileTasksButtonCreate;
-

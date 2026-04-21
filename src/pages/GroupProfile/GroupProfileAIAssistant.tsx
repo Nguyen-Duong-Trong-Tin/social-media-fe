@@ -74,7 +74,7 @@ function GroupProfileAIAssistant() {
           responseMessages.data.data.messages.items.map((item: IMessage) => ({
             content: item.content,
             userId: item.userId,
-          }))
+          })),
         );
       } catch {
         toast.error("Something went wrong.");
@@ -135,7 +135,7 @@ function GroupProfileAIAssistant() {
               vertical
               gap="small"
               className="overflow-y-auto pr-2"
-              style={{ height: 400 }}
+              style={{ height: "65vh", minHeight: 500, maxHeight: 760 }}
             >
               {messages.map((message, index) => (
                 <Flex key={index} gap="small" wrap>
@@ -203,4 +203,3 @@ function GroupProfileAIAssistant() {
 }
 
 export default GroupProfileAIAssistant;
-
