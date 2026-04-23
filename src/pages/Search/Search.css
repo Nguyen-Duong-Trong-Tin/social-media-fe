@@ -98,9 +98,13 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
+  overflow: hidden;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -116,12 +120,18 @@
   object-fit: cover;
 }
 
+.search-user-card > div {
+  min-width: 0;
+}
+
 .search-user-card .name {
   font-weight: 600;
   color: #0f172a;
+  overflow-wrap: anywhere;
 }
 
 .search-user-card .meta {
   font-size: 12px;
   color: #64748b;
+  overflow-wrap: anywhere;
 }

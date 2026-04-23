@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Avatar, Flex } from "antd";
+import { Link } from "react-router-dom";
 import {
   CaretDownOutlined,
   CaretRightOutlined,
@@ -10,6 +11,7 @@ import {
 import { toast } from "react-toastify";
 
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { socket } from "@/services/socket";
 import { getCookie } from "@/helpers/cookies";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -50,7 +52,9 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const typingClearTimeoutsRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const typingClearTimeoutsRef = useRef(
+    new Map<string, ReturnType<typeof setTimeout>>(),
+  );
   const imagePreviewsRef = useRef<string[]>([]);
   const videoPreviewsRef = useRef<string[]>([]);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -187,7 +191,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
             pinnedAt: item.pinnedAt || null,
             createdAt: item.createdAt,
             deleted: item.deleted,
-          }))
+          })),
         );
       } catch {
         toast.error("Unable to load messages.");
@@ -197,7 +201,9 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
     fetchMessages();
   }, [accessToken, roomChatId]);
 
-  const pinnedMessages = messages.filter((item) => item.pinned && !item.deleted);
+  const pinnedMessages = messages.filter(
+    (item) => item.pinned && !item.deleted,
+  );
   const hasPinned = pinnedMessages.length > 0;
 
   const describePinnedMessage = (item: ChatMessage) => {
@@ -211,14 +217,20 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
     const materialCount = item.materials?.length || 0;
     const parts: string[] = [];
 
-    if (imageCount) parts.push(`${imageCount} image${imageCount > 1 ? "s" : ""}`);
-    if (videoCount) parts.push(`${videoCount} video${videoCount > 1 ? "s" : ""}`);
-    if (materialCount) parts.push(`${materialCount} file${materialCount > 1 ? "s" : ""}`);
+    if (imageCount)
+      parts.push(`${imageCount} image${imageCount > 1 ? "s" : ""}`);
+    if (videoCount)
+      parts.push(`${videoCount} video${videoCount > 1 ? "s" : ""}`);
+    if (materialCount)
+      parts.push(`${materialCount} file${materialCount > 1 ? "s" : ""}`);
 
     return parts.length ? `Attachment: ${parts.join(", ")}` : "Pinned message";
   };
 
-  const registerMessageRef = (messageId: string, node: HTMLDivElement | null) => {
+  const registerMessageRef = (
+    messageId: string,
+    node: HTMLDivElement | null,
+  ) => {
     messageRefs.current[messageId] = node;
   };
 
@@ -236,7 +248,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
       }
 
       const missingIds = Array.from(
-        new Set(messages.map((item) => item.userId))
+        new Set(messages.map((item) => item.userId)),
       ).filter((id) => id && !userById[id]);
 
       if (!missingIds.length) {
@@ -282,7 +294,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
               JSON.stringify(item.videos || []) ===
                 JSON.stringify(data.videos || []) &&
               JSON.stringify(item.materials || []) ===
-                JSON.stringify(data.materials || [])
+                JSON.stringify(data.materials || []),
           );
           if (index !== -1) {
             const next = [...prev];
@@ -345,8 +357,8 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
                 pinnedBy: "",
                 pinnedAt: null,
               }
-            : item
-        )
+            : item,
+        ),
       );
     };
 
@@ -372,8 +384,8 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
                 pinnedBy: data.pinnedBy,
                 pinnedAt: data.pinnedAt,
               }
-            : item
-        )
+            : item,
+        ),
       );
     };
 
@@ -396,7 +408,9 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
     return () => {
       imagePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
       videoPreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
-      typingClearTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
+      typingClearTimeoutsRef.current.forEach((timeout) =>
+        clearTimeout(timeout),
+      );
     };
   }, []);
 
@@ -433,7 +447,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
         typingClearTimeoutsRef.current.set(typingUserId, timeout);
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -689,7 +703,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
   const handleRemovePreview = (index: number) => {
     setSelectedImages((prev) =>
-      prev.filter((_, itemIndex) => itemIndex !== index)
+      prev.filter((_, itemIndex) => itemIndex !== index),
     );
     setImagePreviews((prev) => {
       const next = prev.filter((_, itemIndex) => itemIndex !== index);
@@ -703,7 +717,7 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
   const handleRemoveVideoPreview = (index: number) => {
     setSelectedVideos((prev) =>
-      prev.filter((_, itemIndex) => itemIndex !== index)
+      prev.filter((_, itemIndex) => itemIndex !== index),
     );
     setVideoPreviews((prev) => {
       const next = prev.filter((_, itemIndex) => itemIndex !== index);
@@ -717,10 +731,10 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
   const handleRemoveMaterialPreview = (index: number) => {
     setSelectedMaterials((prev) =>
-      prev.filter((_, itemIndex) => itemIndex !== index)
+      prev.filter((_, itemIndex) => itemIndex !== index),
     );
     setMaterialPreviews((prev) =>
-      prev.filter((_, itemIndex) => itemIndex !== index)
+      prev.filter((_, itemIndex) => itemIndex !== index),
     );
   };
 
@@ -735,17 +749,25 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <Avatar
-          src={group.avatar}
-          icon={!group.avatar ? <TeamOutlined /> : undefined}
-        />
-        <div>
-          <h2 className="text-xl font-bold">{group.title}</h2>
-          <p className="text-gray-500 text-sm">
-            {group.users.length} members in the group chat
-          </p>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Avatar
+            src={group.avatar}
+            icon={!group.avatar ? <TeamOutlined /> : undefined}
+          />
+          <div>
+            <h2 className="text-xl font-bold">{group.title}</h2>
+            <p className="text-gray-500 text-sm">
+              {group.users.length} members in the group chat
+            </p>
+          </div>
         </div>
+
+        {roomChatId && (
+          <Link to={`/room-chat/${roomChatId}`}>
+            <Button type="button">Open group chat</Button>
+          </Link>
+        )}
       </div>
 
       {hasPinned && (
@@ -810,7 +832,11 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
           justify="center"
           style={{ height: "100%", opacity: 0.7 }}
         >
-          <Avatar size={64} icon={<TeamOutlined />} className="mb-4 bg-blue-500" />
+          <Avatar
+            size={64}
+            icon={<TeamOutlined />}
+            className="mb-4 bg-blue-500"
+          />
           <h3 className="text-xl font-semibold text-gray-700">
             Welcome to the group chat
           </h3>
@@ -854,4 +880,3 @@ function GroupProfileChat({ group }: GroupProfileChatProps) {
 }
 
 export default GroupProfileChat;
-
