@@ -9,12 +9,16 @@ interface FriendRequestsListProps {
   friendRequests: IUser[];
   onAccept: (userRequestId: string) => void;
   onReject: (userRequestId: string) => void;
+  showViewMore: boolean;
+  onViewMore: () => void;
 }
 
 function FriendRequestsList({
   friendRequests,
   onAccept,
   onReject,
+  showViewMore,
+  onViewMore,
 }: FriendRequestsListProps) {
   return (
     <Card className="p-5">
@@ -65,6 +69,14 @@ function FriendRequestsList({
           </Col>
         ))}
       </Row>
+
+      {showViewMore && (
+        <div className="mt-4 flex justify-end">
+          <Button className="cursor-pointer" onClick={onViewMore}>
+            View more...
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

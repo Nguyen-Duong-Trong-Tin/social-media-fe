@@ -12,9 +12,11 @@ interface FriendsListItem {
 
 interface FriendsListProps {
   friends: FriendsListItem[];
+  showViewMore: boolean;
+  onViewMore: () => void;
 }
 
-function FriendsList({ friends }: FriendsListProps) {
+function FriendsList({ friends, showViewMore, onViewMore }: FriendsListProps) {
   return (
     <Card className="p-5">
       <h2 className="text-xl font-bold">List of friends</h2>
@@ -55,6 +57,14 @@ function FriendsList({ friends }: FriendsListProps) {
           </Col>
         ))}
       </Row>
+
+      {showViewMore && (
+        <div className="mt-4 flex justify-end">
+          <Button className="cursor-pointer" onClick={onViewMore}>
+            View more...
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

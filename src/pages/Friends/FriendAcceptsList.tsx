@@ -8,11 +8,15 @@ import type { IUser } from "@/interfaces/user.interface";
 interface FriendAcceptsListProps {
   friendAccepts: IUser[];
   onDelete: (userRequestId: string) => void;
+  showViewMore: boolean;
+  onViewMore: () => void;
 }
 
 function FriendAcceptsList({
   friendAccepts,
   onDelete,
+  showViewMore,
+  onViewMore,
 }: FriendAcceptsListProps) {
   return (
     <Card className="p-5">
@@ -54,6 +58,14 @@ function FriendAcceptsList({
           </Col>
         ))}
       </Row>
+
+      {showViewMore && (
+        <div className="mt-4 flex justify-end">
+          <Button className="cursor-pointer" onClick={onViewMore}>
+            View more...
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

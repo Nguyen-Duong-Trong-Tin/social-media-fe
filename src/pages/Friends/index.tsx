@@ -20,6 +20,8 @@ import FriendsList from "@/pages/Friends/FriendsList";
 import PeopleYouMayKnowList from "@/pages/Friends/PeopleYouMayKnowList";
 import FriendAround from "@/pages/Friends/FriendAround";
 
+const SECTION_LIMIT_STEP = 12;
+
 function FriendsPage() {
   const userId = getCookie("userId");
   const accessToken = getCookie("accessToken");
@@ -31,6 +33,16 @@ function FriendsPage() {
   const [friends, setFriends] = useState<{ user: IUser; roomChatId: string }[]>(
     [],
   );
+  const [friendRequestsTotal, setFriendRequestsTotal] = useState(0);
+  const [friendAcceptsTotal, setFriendAcceptsTotal] = useState(0);
+  const [friendsTotal, setFriendsTotal] = useState(0);
+  const [peopleTotal, setPeopleTotal] = useState(0);
+  const [friendRequestsLimit, setFriendRequestsLimit] =
+    useState(SECTION_LIMIT_STEP);
+  const [friendAcceptsLimit, setFriendAcceptsLimit] =
+    useState(SECTION_LIMIT_STEP);
+  const [friendsLimit, setFriendsLimit] = useState(SECTION_LIMIT_STEP);
+  const [peopleLimit, setPeopleLimit] = useState(SECTION_LIMIT_STEP);
   const [peopleYouMayKnow, setPeopleYouMayKnow] = useState<IUser[]>([]);
   const [peopleLoading, setPeopleLoading] = useState(false);
 
@@ -39,7 +51,11 @@ function FriendsPage() {
       try {
         const responseUser = await findUserById({ accessToken, id: userId });
 
-        const friendRequestIds = responseUser.data.data.friendRequests ?? [];
+        const friendRequestIdsAll = responseUser.data.data.friendRequests ?? [];
+        const friendRequestIds = friendRequestIdsAll.slice(
+          0,
+          friendRequestsLimit,
+        );
         const friendRequests: IUser[] = [];
         for (const friendRequestId of friendRequestIds) {
           const {
@@ -48,7 +64,8 @@ function FriendsPage() {
           friendRequests.push(data);
         }
 
-        const friendAcceptIds = responseUser.data.data.friendAccepts ?? [];
+        const friendAcceptIdsAll = responseUser.data.data.friendAccepts ?? [];
+        const friendAcceptIds = friendAcceptIdsAll.slice(0, friendAcceptsLimit);
         const friendAccepts: IUser[] = [];
         for (const friendAcceptId of friendAcceptIds) {
           const {
@@ -57,7 +74,8 @@ function FriendsPage() {
           friendAccepts.push(data);
         }
 
-        const friendItems = responseUser.data.data.friends ?? [];
+        const friendItemsAll = responseUser.data.data.friends ?? [];
+        const friendItems = friendItemsAll.slice(0, friendsLimit);
         const friends: { user: IUser; roomChatId: string }[] = [];
         for (const friend of friendItems) {
           const {
@@ -69,9 +87,9 @@ function FriendsPage() {
         setPeopleLoading(true);
         const excludedIds = [
           userId,
-          ...friendRequestIds,
-          ...friendAcceptIds,
-          ...friendItems.map((friend: { userId: string }) => friend.userId),
+          ...friendRequestIdsAll,
+          ...friendAcceptIdsAll,
+          ...friendItemsAll.map((friend: { userId: string }) => friend.userId),
         ].filter(Boolean);
 
         const {
@@ -81,7 +99,7 @@ function FriendsPage() {
         } = await findUsers({
           accessToken,
           page: 1,
-          limit: 12,
+          limit: peopleLimit,
           filter: {
             notInIds: JSON.stringify(excludedIds),
           },
@@ -90,6 +108,10 @@ function FriendsPage() {
         setFriendRequests(friendRequests);
         setFriendAccepts(friendAccepts);
         setFriends(friends);
+        setFriendRequestsTotal(friendRequestIdsAll.length);
+        setFriendAcceptsTotal(friendAcceptIdsAll.length);
+        setFriendsTotal(friendItemsAll.length);
+        setPeopleTotal(users.total ?? 0);
         setPeopleYouMayKnow(users.items);
       } catch {
         toast.error("Something went wrong");
@@ -98,7 +120,15 @@ function FriendsPage() {
       }
     };
     fetchApi();
-  }, [accessToken, userId, reload]);
+  }, [
+    accessToken,
+    userId,
+    reload,
+    friendRequestsLimit,
+    friendAcceptsLimit,
+    friendsLimit,
+    peopleLimit,
+  ]);
 
   useEffect(() => {
     markFriendRequestsRead();
@@ -223,25 +253,51 @@ function FriendsPage() {
     toast.success("Sent invitation successfully");
   };
 
+  const handleViewMoreFriendRequests = () => {
+    setFriendRequestsLimit((prev) => prev + SECTION_LIMIT_STEP);
+  };
+
+  const handleViewMoreFriendAccepts = () => {
+    setFriendAcceptsLimit((prev) => prev + SECTION_LIMIT_STEP);
+  };
+
+  const handleViewMoreFriends = () => {
+    setFriendsLimit((prev) => prev + SECTION_LIMIT_STEP);
+  };
+
+  const handleViewMorePeople = () => {
+    setPeopleLimit((prev) => prev + SECTION_LIMIT_STEP);
+  };
+
   return (
     <>
       <FriendRequestsList
         friendRequests={friendRequests}
         onAccept={handleAcceptFriendRequest}
         onReject={handleRejectFriendRequest}
+        showViewMore={friendRequestsLimit < friendRequestsTotal}
+        onViewMore={handleViewMoreFriendRequests}
       />
 
       <FriendAcceptsList
         friendAccepts={friendAccepts}
         onDelete={handleDeleteFriendAccept}
+        showViewMore={friendAcceptsLimit < friendAcceptsTotal}
+        onViewMore={handleViewMoreFriendAccepts}
       />
 
-      <FriendsList friends={friends} />
+      <FriendsList
+        friends={friends}
+        showViewMore={friendsLimit < friendsTotal}
+        onViewMore={handleViewMoreFriends}
+      />
 
       <PeopleYouMayKnowList
         people={peopleYouMayKnow}
         loading={peopleLoading}
         onSendInvitation={handleSendFriendRequest}
+        showViewMore={peopleLimit < peopleTotal}
+        onViewMore={handleViewMorePeople}
       />
 
       <FriendAround />
